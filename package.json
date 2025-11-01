@@ -1,26 +1,12 @@
 {
   "name": "vps-manager",
   "version": "1.0.0",
-  "description": "VPS Management System by Hiếu Dz - Based on DuckNoVis",
-  "main": "api/create-vps.js",
-  "type": "module",
+  "main": "index.js",
   "scripts": {
-    "dev": "vercel dev"
+    "start": "node index.js"
   },
   "dependencies": {
-    "@octokit/rest": "^21.0.1",
-    "libsodium-wrappers": "^0.7.13"
-  },
-  "engines": {
-    "node": "22.x"
-  },
-  "keywords": [
-    "vps",
-    "github",
-    "automation",
-    "vnc",
-    "remote-desktop"
-  ],
-  "author": "Hiếu Dz",
-  "license": "MIT"
+    "@octokit/rest": "^19.0.12",
+    "libsodium-wrappers": "^0.7.9"
+  }
 }
