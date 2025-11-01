@@ -2,7 +2,6 @@ import { Octokit } from '@octokit/rest';
 import fs from 'fs';
 import sodium from 'libsodium-wrappers';
 
-const ALLOWED_ORIGIN_PATTERN = /^https?:\/\/([\w\-]+\.)?(hieuvn\.xyz|vps-github\.vercel\.app)(\/.*)?$/;
 const VPS_USER_FILE = '/tmp/vpsuser.json';
 
 // Save VPS user to temporary storage
@@ -21,18 +20,9 @@ function saveVpsUser(githubToken, remoteLink) {
     }
 }
 
-// Check if origin is allowed
+// Bỏ qua kiểm tra origin hoàn toàn (dùng cho dev/testing)
 function checkOrigin(origin) {
-    if (!origin) return false;
-    // Cho phép localhost, 127.0.0.1, và các domain hợp lệ
-    if (
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1') ||
-        ALLOWED_ORIGIN_PATTERN.test(origin)
-    ) {
-        return true;
-    }
-    return false;
+    return true;
 }
 
 // Helper function to create repo secret
@@ -93,7 +83,7 @@ async function createOrUpdateFile(octokit, owner, repo, path, content, message) 
     }
 }
 
-// Generate tmate.yml workflow content
+// Generate tmate.yml workflow content (giữ nguyên)
 function generateTmateYml(ngrokServerUrl, vpsName, repoFullName) {
     return `name: Create VPS (Auto Restart)
 
@@ -123,7 +113,7 @@ jobs:
 `;
 }
 
-// Generate auto-start.yml content
+// Generate auto-start.yml content (giữ nguyên)
 function generateAutoStartYml(repoFullName) {
     return `name: Auto Start VPS on Push
 
