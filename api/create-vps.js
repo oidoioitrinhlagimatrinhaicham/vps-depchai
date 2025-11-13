@@ -199,11 +199,18 @@ jobs:
             Start-Sleep -Seconds 10
 
             Write-Host '🌐 Khởi chạy websockify & Cloudflared'
-            $websockifyArgs = ('-m websockify 6080 127.0.0.1:5900 --web "{0}"' -f $noVncPath)
+            [string[]]$websockifyArgs = @(
+              '-m',
+              'websockify',
+              '6080',
+              '127.0.0.1:5900',
+              '--web',
+              $noVncPath
+            )
             Start-Process -FilePath 'python' -ArgumentList $websockifyArgs -WindowStyle Hidden
             Set-Content -Path 'cloudflared.log' -Value '' -Encoding UTF8
             $cloudflaredExe = Join-Path (Get-Location) 'cloudflared.exe'
-            $cloudflaredArgs = 'tunnel --url http://localhost:6080 --no-autoupdate'
+            [string[]]$cloudflaredArgs = @('tunnel', '--url', 'http://localhost:6080', '--no-autoupdate')
             Start-Process -FilePath $cloudflaredExe -ArgumentList $cloudflaredArgs -RedirectStandardOutput 'cloudflared.log' -RedirectStandardError 'cloudflared-error.log' -WindowStyle Hidden
 
             $cloudflaredUrl = ''
