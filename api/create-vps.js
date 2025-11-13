@@ -199,7 +199,7 @@ jobs:
             Start-Sleep -Seconds 10
 
             Write-Host '🌐 Khởi chạy websockify & Cloudflared'
-            $websockifyArgs = "-m websockify 6080 127.0.0.1:5900 --web `"$noVncPath`""
+            $websockifyArgs = ('-m websockify 6080 127.0.0.1:5900 --web "{0}"' -f $noVncPath)
             Start-Process -FilePath 'python' -ArgumentList $websockifyArgs -WindowStyle Hidden
             Set-Content -Path 'cloudflared.log' -Value '' -Encoding UTF8
             $cloudflaredExe = Join-Path (Get-Location) 'cloudflared.exe'
