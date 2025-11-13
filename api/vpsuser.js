@@ -1,9 +1,23 @@
 const { loadRecords, saveRecords } = require('./vps-store');
 const { deriveCallbackSecret } = require('./callback-secret');
 
+const MAX_LOGS = 40;
+
 function sanitizeRecord(record) {
   const { callback_secret, ...safeRecord } = record;
+  if (!Array.isArray(safeRecord.logs)) {
+    safeRecord.logs = [];
+  }
   return safeRecord;
+}
+
+function appendLog(entry, message, timestamp = new Date().toISOString()) {
+  if (!message) return entry;
+  const logs = Array.isArray(entry.logs) ? entry.logs : [];
+  logs.push({ message, at: timestamp });
+  entry.logs = logs.slice(-MAX_LOGS);
+  entry.updated_at = timestamp;
+  return entry;
 }
 
 function sortByUpdatedAt(a, b) {
@@ -33,6 +47,7 @@ module.exports = async (req, res) => {
       status,
       token_hint: tokenHint,
       requested_at: requestedAt,
+      log_entry: logEntry,
     } = req.body || {};
 
     if (!repo || !callbackSecret) {
@@ -54,9 +69,15 @@ module.exports = async (req, res) => {
       entry.remote_link = remoteLink;
     }
 
-    const normalizedStatus = status || (entry.remote_link ? 'ready' : entry.status || 'creating');
+    if (logEntry) {
+      appendLog(entry, logEntry);
+    }
+
+    const normalizedStatus = status && status !== 'log'
+      ? status
+      : (entry.remote_link ? 'ready' : entry.status || 'creating');
     entry.status = normalizedStatus;
-    entry.updated_at = new Date().toISOString();
+    entry.updated_at = entry.updated_at || new Date().toISOString();
     if (tokenHint) {
       entry.token_hint = tokenHint;
     }

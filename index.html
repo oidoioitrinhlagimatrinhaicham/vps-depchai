@@ -332,6 +332,54 @@
       gap: 10px;
     }
 
+    .log-board {
+      margin-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 14px;
+    }
+
+    .log-head {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .log-feed {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .log-feed li {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 12px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      align-items: baseline;
+    }
+
+    .log-feed time {
+      font-variant-numeric: tabular-nums;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .log-empty {
+      font-style: italic;
+      opacity: 0.75;
+      grid-template-columns: 1fr !important;
+    }
+
     .mini-btn {
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 14px;
@@ -392,6 +440,35 @@
       line-height: 1.5;
     }
 
+    .auto-start-callout {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 26px;
+      padding: 20px 28px;
+      background: rgba(9, 13, 24, 0.8);
+      margin-bottom: 32px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+    }
+
+    .auto-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 176, 244, 0.18);
+      font-size: 1.4rem;
+      color: var(--accent-strong);
+    }
+
+    .auto-start-callout p {
+      color: var(--muted);
+      margin: 4px 0 0;
+      line-height: 1.5;
+    }
+
     footer {
       text-align: center;
       margin-top: 40px;
@@ -446,8 +523,21 @@
           <span>Tên dự án</span>
           <strong>Celestia</strong>
         </div>
+        <div class="fact-card">
+          <span>Auto start</span>
+          <strong>Luôn bật</strong>
+        </div>
       </div>
     </header>
+
+    <section class="auto-start-callout">
+      <div class="auto-icon"><i class="fas fa-arrows-rotate"></i></div>
+      <div>
+        <h3>Auto start pulse</h3>
+        <p>Các capsule mới được đính kèm workflow auto start để tự kích hoạt lại khi có thay đổi hoặc khi bạn đẩy cập nhật.
+          Bạn chỉ cần tạo một lần, phần khởi động lại Celestia sẽ tự lo.</p>
+      </div>
+    </section>
 
     <section class="panels">
       <div class="panel">
@@ -598,8 +688,25 @@
       return `${days} ngày trước`;
     }
 
+    function escapeHTML(str = '') {
+      return str.replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[char] || char));
+    }
+
+    function formatLogTime(iso) {
+      if (!iso) return '--:--:--';
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return '--:--:--';
+      return date.toLocaleTimeString('vi-VN', { hour12: false });
+    }
+
     function buildCapsuleCard(entry) {
-      const { repo, remote_link: link, status = 'creating', token_hint: tokenHint, updated_at: updatedAt, requested_at: requestedAt } = entry;
+      const { repo, remote_link: link, status = 'creating', token_hint: tokenHint, updated_at: updatedAt, requested_at: requestedAt, logs = [] } = entry;
       const pillClass = statusStyles[status] || 'status-creating';
       const statusLabel = status === 'ready' ? 'Ready' : status === 'error' ? 'Error' : 'Pending';
       const infoLines = [
@@ -607,6 +714,10 @@
         requestedAt ? `Bắt đầu: ${new Date(requestedAt).toLocaleString('vi-VN')}` : null,
         updatedAt ? `Cập nhật: ${formatRelativeTime(updatedAt)}` : null,
       ].filter(Boolean).join(' • ');
+      const latestLogs = Array.isArray(logs) ? logs.slice(-6).reverse() : [];
+      const logsMarkup = latestLogs.length
+        ? latestLogs.map((log) => `<li><time>${formatLogTime(log.at)}</time><span>${escapeHTML(log.message || '')}</span></li>`).join('')
+        : '<li class="log-empty"><span>Chưa có tín hiệu workflow.</span></li>';
 
       const wrapper = document.createElement('div');
       wrapper.className = 'capsule-card';
@@ -623,6 +734,10 @@
           <button class="mini-btn" ${link ? '' : 'disabled'} data-action="copy"><i class="fas fa-copy"></i> Copy link</button>
           <button class="mini-btn" ${link ? '' : 'disabled'} data-action="open"><i class="fas fa-arrow-up-right-from-square"></i> Mở</button>
           <button class="mini-btn" data-action="delete"><i class="fas fa-xmark"></i> Xóa</button>
+        </div>
+        <div class="log-board">
+          <div class="log-head"><i class="fas fa-terminal"></i> Log gần nhất</div>
+          <ul class="log-feed">${logsMarkup}</ul>
         </div>
       `;
 

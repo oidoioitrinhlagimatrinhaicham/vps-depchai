@@ -57,15 +57,25 @@ async function createOrUpdateFile(octokit, owner, repo, path, content, message) 
   await octokit.rest.repos.createOrUpdateFileContents(params);
 }
 
+function appendLog(entry, message, timestamp = new Date().toISOString()) {
+  if (!message) return entry;
+  const safeEntry = entry || {};
+  const logs = Array.isArray(safeEntry.logs) ? safeEntry.logs : [];
+  logs.push({ message, at: timestamp });
+  const maxLogs = 40;
+  safeEntry.logs = logs.slice(-maxLogs);
+  return safeEntry;
+}
+
 function registerPendingVps(repoFullName, tokenHint, requestedAt) {
   const records = loadRecords();
-  records[repoFullName] = {
+  records[repoFullName] = appendLog({
     repo: repoFullName,
     token_hint: tokenHint,
     status: 'creating',
     updated_at: requestedAt,
     requested_at: requestedAt,
-  };
+  }, 'Workflow dispatched', requestedAt);
   saveRecords(records);
 }
 
@@ -73,12 +83,12 @@ function markRecordError(repoFullName, message) {
   if (!repoFullName) return;
   const records = loadRecords();
   if (!records[repoFullName]) return;
-  records[repoFullName] = {
+  records[repoFullName] = appendLog({
     ...records[repoFullName],
     status: 'error',
     error: message,
     updated_at: new Date().toISOString(),
-  };
+  }, `❌ ${message}`);
   saveRecords(records);
 }
 
@@ -126,7 +136,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
 
-          function Send-Callback([string]$status, [string]$link) {
+          function Send-Callback([string]$status, [string]$link, [string]$logMessage) {
             $payload = [ordered]@{
               repo = $env:REPO_FULL_NAME
               status = $status
@@ -137,6 +147,9 @@ jobs:
             if ($link) {
               $payload.remote_link = $link
             }
+            if ($logMessage) {
+              $payload.log_entry = $logMessage
+            }
             try {
               $json = $payload | ConvertTo-Json
               Invoke-RestMethod -Uri $env:CALLBACK_URL -Method Post -Body $json -ContentType 'application/json' -TimeoutSec 30 | Out-Null
@@ -146,14 +159,19 @@ jobs:
             }
           }
 
-          try {
-            Send-Callback 'provisioning' $null
+          function Write-ProgressLog([string]$message) {
+            Write-Host $message
+            Send-Callback 'log' $null $message
+          }
 
-            Write-Host '📁 Chuẩn bị thư mục links/'
+          try {
+            Send-Callback 'provisioning' $null 'Bắt đầu cấp phát capsule'
+
+            Write-ProgressLog '📁 Chuẩn bị thư mục links/'
             New-Item -ItemType Directory -Path "links" -Force | Out-Null
             "VPS đang được khởi tạo lúc $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File -FilePath "links/$($env:VPS_NAME).txt" -Encoding UTF8
 
-            Write-Host '🛠️ Cài đặt TightVNC'
+            Write-ProgressLog '🛠️ Cài đặt TightVNC'
             Invoke-WebRequest -Uri 'https://www.tightvnc.com/download/2.8.63/tightvnc-2.8.63-gpl-setup-64bit.msi' -OutFile 'tightvnc.msi' -TimeoutSec 120
             $tightVncArgs = @(
               '/i','tightvnc.msi',
@@ -174,19 +192,19 @@ jobs:
             $tightVncArgsString = ($tightVncArgs -join ' ')
             Start-Process msiexec.exe -Wait -ArgumentList $tightVncArgsString
 
-            Write-Host '🔧 Thiết lập firewall cho cổng 5900 & 6080'
+            Write-ProgressLog '🔧 Thiết lập firewall cho cổng 5900 & 6080'
             netsh advfirewall firewall add rule name="Allow VNC 5900" dir=in action=allow protocol=TCP localport=5900 | Out-Null
             netsh advfirewall firewall add rule name="Allow noVNC 6080" dir=in action=allow protocol=TCP localport=6080 | Out-Null
 
-            Write-Host '📦 Cài đặt Python dependencies'
+            Write-ProgressLog '📦 Cài đặt Python dependencies'
             python -m pip install --upgrade pip
             pip install novnc websockify==0.11.0
             $noVncPath = (python -c "import novnc, os; print(os.path.dirname(novnc.__file__))").Trim()
 
-            Write-Host '📥 Tải Cloudflared'
+            Write-ProgressLog '📥 Tải Cloudflared'
             Invoke-WebRequest -Uri 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile 'cloudflared.exe' -TimeoutSec 120
 
-            Write-Host '🚀 Khởi chạy TightVNC'
+            Write-ProgressLog '🚀 Khởi chạy TightVNC'
             $tightVncDir = Join-Path $env:ProgramFiles 'TightVNC'
             $tightVncExe = Join-Path $tightVncDir 'tvnserver.exe'
             if (-not (Test-Path $tightVncExe)) {
@@ -198,28 +216,17 @@ jobs:
             Start-Process -FilePath $tightVncExe -ArgumentList '-run' -WindowStyle Hidden
             Start-Sleep -Seconds 10
 
-            Write-Host '🌐 Khởi chạy websockify & Cloudflared'
-            [string[]]$websockifyArgs = @(
-              '-m',
-              'websockify',
-              '6080',
-              '127.0.0.1:5900',
-              '--web',
-              $noVncPath
-            )
-            Start-Process -FilePath 'python' -ArgumentList $websockifyArgs -WindowStyle Hidden
+            Write-ProgressLog '🌐 Khởi chạy websockify & Cloudflared'
+            $websockifyArgsString = "-m websockify 6080 127.0.0.1:5900 --web '$noVncPath'"
+            Start-Process -FilePath 'python' -ArgumentList $websockifyArgsString -WindowStyle Hidden
+            Start-Sleep -Seconds 5
             $cloudflaredLog = 'cloudflared.log'
             $cloudflaredErrLog = 'cloudflared-error.log'
             Set-Content -Path $cloudflaredLog -Value '' -Encoding UTF8
             Set-Content -Path $cloudflaredErrLog -Value '' -Encoding UTF8
             $cloudflaredExe = Join-Path (Get-Location) 'cloudflared.exe'
-            [string[]]$cloudflaredArgs = @(
-              'tunnel',
-              '--url','http://localhost:6080',
-              '--no-autoupdate',
-              '--loglevel','info'
-            )
-            Start-Process -FilePath $cloudflaredExe -ArgumentList $cloudflaredArgs -RedirectStandardOutput $cloudflaredLog -RedirectStandardError $cloudflaredErrLog -WindowStyle Hidden
+            $cloudflaredArgsString = 'tunnel --url http://localhost:6080 --no-autoupdate --loglevel info'
+            Start-Process -FilePath $cloudflaredExe -ArgumentList $cloudflaredArgsString -RedirectStandardOutput $cloudflaredLog -RedirectStandardError $cloudflaredErrLog -WindowStyle Hidden
 
             $cloudflaredUrl = ''
             for ($attempt = 1; $attempt -le 200; $attempt++) {
@@ -237,7 +244,7 @@ jobs:
             }
 
             if (-not $cloudflaredUrl) {
-              Write-Host '⚠️ Không tìm thấy URL trong cloudflared.log hoặc cloudflared-error.log'
+              Write-ProgressLog '⚠️ Không tìm thấy URL trong cloudflared logs'
               if (Test-Path $cloudflaredErrLog) {
                 Write-Host '📄 cloudflared-error.log nội dung:'
                 Write-Host (Get-Content $cloudflaredErrLog -Raw -ErrorAction SilentlyContinue)
@@ -246,7 +253,7 @@ jobs:
             }
 
             $remoteLink = "$cloudflaredUrl/vnc.html"
-            Write-Host "🌌 Remote link: $remoteLink"
+            Write-ProgressLog "🌌 Remote link: $remoteLink"
 
             Set-Content -Path 'remote-link.txt' -Value $remoteLink -Encoding UTF8
             git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -255,7 +262,7 @@ jobs:
             git commit -m "🔗 Updated remote-link.txt - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" --allow-empty
             git push origin HEAD:main
 
-            Send-Callback 'ready' $remoteLink
+            Send-Callback 'ready' $remoteLink 'Cloudflared tunnel sẵn sàng'
 
             $totalMinutes = [int]$env:TOTAL_MINUTES
             for ($minute = 1; $minute -le $totalMinutes; $minute++) {
@@ -266,7 +273,7 @@ jobs:
             }
           } catch {
             Write-Host "❌ Workflow lỗi: $_"
-            Send-Callback 'error' $null
+            Send-Callback 'error' $null "Workflow gặp lỗi: $($_.Exception.Message)"
             throw
           }
 `;
@@ -342,7 +349,7 @@ module.exports = async (req, res) => {
         content: generateTmateYml(repoFullName, callbackUrl, callbackSecret, repoName, tokenHint, requestedAt),
         message: 'Add VPS workflow',
       },
-      'auto-start.yml': {
+      '.github/workflows/auto-start.yml': {
         content: generateAutoStartYml(repoFullName),
         message: 'Add auto-start configuration',
       },
