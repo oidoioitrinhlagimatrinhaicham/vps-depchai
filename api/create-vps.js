@@ -299,7 +299,7 @@ module.exports = async (req, res) => {
     const repoName = `vps-project-${Date.now()}`;
     const { data: repo } = await octokit.rest.repos.createForAuthenticatedUser({
       name: repoName,
-      private: false,
+      private: true,
       auto_init: true,
       description: 'VPS Manager - Generated automatically',
     });

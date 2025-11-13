@@ -68,20 +68,6 @@ module.exports = async (req, res) => {
     if (normalizedStatus === 'error') {
       delete entry.remote_link;
     }
-    if (requestedAt) {
-      entry.requested_at = requestedAt;
-    } else if (!entry.requested_at) {
-      entry.requested_at = entry.updated_at;
-    }
-    if (normalizedStatus === 'error') {
-      delete entry.remote_link;
-    }
-
-    records[repo] = entry;
-    saveRecords(records);
-
-    return res.status(200).json({ status: 'success' });
-  }
 
     records[repo] = entry;
     saveRecords(records);
