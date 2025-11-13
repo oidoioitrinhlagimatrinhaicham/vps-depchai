@@ -1,4 +1,5 @@
 const { loadRecords, saveRecords } = require('./vps-store');
+const { deriveCallbackSecret } = require('./callback-secret');
 
 function sanitizeRecord(record) {
   const { callback_secret, ...safeRecord } = record;
@@ -25,22 +26,26 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    const { repo, remote_link: remoteLink, callback_secret: callbackSecret, status } = req.body || {};
+    const {
+      repo,
+      remote_link: remoteLink,
+      callback_secret: callbackSecret,
+      status,
+      token_hint: tokenHint,
+      requested_at: requestedAt,
+    } = req.body || {};
 
     if (!repo || !callbackSecret) {
       return res.status(400).json({ error: 'Missing repo or callback_secret' });
     }
 
-    const records = loadRecords();
-    const entry = records[repo];
-
-    if (!entry) {
-      return res.status(404).json({ error: 'Unknown repo' });
-    }
-
-    if (entry.callback_secret !== callbackSecret) {
+    const expectedSecret = deriveCallbackSecret(repo);
+    if (callbackSecret !== expectedSecret) {
       return res.status(403).json({ error: 'Invalid callback secret' });
     }
+
+    const records = loadRecords();
+    const entry = records[repo] || { repo };
 
     if (remoteLink) {
       if (!/^https?:\/\//i.test(remoteLink)) {
@@ -52,6 +57,14 @@ module.exports = async (req, res) => {
     const normalizedStatus = status || (entry.remote_link ? 'ready' : entry.status || 'creating');
     entry.status = normalizedStatus;
     entry.updated_at = new Date().toISOString();
+    if (tokenHint) {
+      entry.token_hint = tokenHint;
+    }
+    if (requestedAt) {
+      entry.requested_at = requestedAt;
+    } else if (!entry.requested_at) {
+      entry.requested_at = entry.updated_at;
+    }
     if (normalizedStatus === 'error') {
       delete entry.remote_link;
     }

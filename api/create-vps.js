@@ -1,7 +1,7 @@
 const { Octokit } = require('@octokit/rest');
-const crypto = require('crypto');
 const sodium = require('libsodium-wrappers');
 const { loadRecords, saveRecords } = require('./vps-store');
+const { deriveCallbackSecret } = require('./callback-secret');
 
 const ALLOWED_ORIGIN_PATTERN = /^https?:\/\/(vps-depchai\.vercel\.app|vps-github\.vercel\.app|hieuvn\.xyz)(\/.*)?$/;
 const WORKFLOW_MINUTES = 330;
@@ -57,14 +57,14 @@ async function createOrUpdateFile(octokit, owner, repo, path, content, message) 
   await octokit.rest.repos.createOrUpdateFileContents(params);
 }
 
-function registerPendingVps(repoFullName, tokenHint, callbackSecret) {
+function registerPendingVps(repoFullName, tokenHint, requestedAt) {
   const records = loadRecords();
   records[repoFullName] = {
     repo: repoFullName,
     token_hint: tokenHint,
     status: 'creating',
-    updated_at: new Date().toISOString(),
-    callback_secret: callbackSecret,
+    updated_at: requestedAt,
+    requested_at: requestedAt,
   };
   saveRecords(records);
 }
@@ -91,7 +91,7 @@ function buildCallbackUrl(req) {
   return `${protocol}://${host.replace(/\/$/, '')}/api/vpsuser`;
 }
 
-function generateTmateYml(repoFullName, callbackUrl, callbackSecret, vpsName) {
+function generateTmateYml(repoFullName, callbackUrl, callbackSecret, vpsName, tokenHint, requestedAt) {
   return `name: Create VPS (Auto Restart)
 
 on:
@@ -106,6 +106,8 @@ env:
   CALLBACK_SECRET: ${callbackSecret}
   TOTAL_MINUTES: ${WORKFLOW_MINUTES}
   MACHINE_PASSWORD: hieudz
+  TOKEN_HINT: ${tokenHint}
+  REQUESTED_AT: ${requestedAt}
 
 jobs:
   deploy:
@@ -129,6 +131,8 @@ jobs:
               repo = $env:REPO_FULL_NAME
               status = $status
               callback_secret = $env:CALLBACK_SECRET
+              token_hint = $env:TOKEN_HINT
+              requested_at = $env:REQUESTED_AT
             }
             if ($link) {
               $payload.remote_link = $link
@@ -151,7 +155,23 @@ jobs:
 
             Write-Host '🛠️ Cài đặt TightVNC'
             Invoke-WebRequest -Uri 'https://www.tightvnc.com/download/2.8.63/tightvnc-2.8.63-gpl-setup-64bit.msi' -OutFile 'tightvnc.msi' -TimeoutSec 120
-            Start-Process msiexec.exe -Wait -ArgumentList '/i tightvnc.msi /quiet /norestart ADDLOCAL="Server" SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=' + $env:MACHINE_PASSWORD + ' SET_ACCEPTHTTPCONNECTIONS=1 VALUE_OF_ACCEPTHTTPCONNECTIONS=1 SET_ALLOWLOOPBACK=1 VALUE_OF_ALLOWLOOPBACK=1'
+            $tightVncArgs = @(
+              '/i','tightvnc.msi',
+              '/quiet',
+              '/norestart',
+              'ADDLOCAL=Server',
+              'SERVER_REGISTER_AS_SERVICE=1',
+              'SERVER_ADD_FIREWALL_EXCEPTION=1',
+              'SET_USEVNCAUTHENTICATION=1',
+              'VALUE_OF_USEVNCAUTHENTICATION=1',
+              'SET_PASSWORD=1',
+              "VALUE_OF_PASSWORD=$($env:MACHINE_PASSWORD)",
+              'SET_ACCEPTHTTPCONNECTIONS=1',
+              'VALUE_OF_ACCEPTHTTPCONNECTIONS=1',
+              'SET_ALLOWLOOPBACK=1',
+              'VALUE_OF_ALLOWLOOPBACK=1'
+            )
+            Start-Process msiexec.exe -Wait -ArgumentList $tightVncArgs
 
             Write-Host '🔧 Thiết lập firewall cho cổng 5900 & 6080'
             netsh advfirewall firewall add rule name="Allow VNC 5900" dir=in action=allow protocol=TCP localport=5900 | Out-Null
@@ -280,13 +300,14 @@ module.exports = async (req, res) => {
     await createRepoSecret(octokit, user.login, repoName, 'GH_TOKEN', github_token);
 
     const callbackUrl = buildCallbackUrl(req);
-    const callbackSecret = crypto.randomBytes(24).toString('hex');
+    const callbackSecret = deriveCallbackSecret(repoFullName);
     const tokenHint = maskToken(github_token);
-    registerPendingVps(repoFullName, tokenHint, callbackSecret);
+    const requestedAt = new Date().toISOString();
+    registerPendingVps(repoFullName, tokenHint, requestedAt);
 
     const files = {
       '.github/workflows/tmate.yml': {
-        content: generateTmateYml(repoFullName, callbackUrl, callbackSecret, repoName),
+        content: generateTmateYml(repoFullName, callbackUrl, callbackSecret, repoName, tokenHint, requestedAt),
         message: 'Add VPS workflow',
       },
       'auto-start.yml': {
