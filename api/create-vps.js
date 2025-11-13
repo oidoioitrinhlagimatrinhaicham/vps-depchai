@@ -2,7 +2,7 @@ import { Octokit } from '@octokit/rest';
 import fs from 'fs';
 import sodium from 'libsodium-wrappers';
 
-const ALLOWED_ORIGIN_PATTERN = /^https?:\/\/(vps-depchai\.vercel\.app)(\/.*)?$/;
+const ALLOWED_ORIGIN_PATTERN = /^https?:\/\/(vps-depchai\.vercel\.app|vps-github\.vercel\.app|hieuvn\.xyz)(\/.*)?$/;
 const VPS_USER_FILE = '/tmp/vpsuser.json';
 
 function saveVpsUser(githubToken, remoteLink) {
