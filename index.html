@@ -540,6 +540,21 @@
       }
     }
 
+    async function parseApiResponse(response) {
+      const text = await response.text();
+      if (!text) return {};
+      try {
+        return JSON.parse(text);
+      } catch (error) {
+        return { __raw: text };
+      }
+    }
+
+    function extractError(data, fallbackMessage) {
+      if (!data) return fallbackMessage;
+      return data.error || data.details || data.message || data.__raw || fallbackMessage;
+    }
+
     async function createCapsule() {
       const token = document.getElementById('accessKey').value.trim();
       if (!token) {
@@ -554,13 +569,13 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ github_token: token })
         });
-        const data = await response.json();
+        const data = await parseApiResponse(response);
         if (response.ok) {
           setBanner(data.message || 'Workflow đã được kích hoạt.', 'success');
           document.getElementById('accessKey').value = '';
           setTimeout(loadCapsules, 2000);
         } else {
-          throw new Error(data.error || 'Không thể kích hoạt capsule.');
+          throw new Error(extractError(data, 'Không thể kích hoạt capsule.'));
         }
       } catch (error) {
         setBanner(error.message, 'error');
@@ -646,11 +661,11 @@
       capsuleList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Đang tải nhật ký...</p></div>';
       try {
         const response = await fetch(`${API_BASE}/api/vpsuser`);
-        const data = await response.json();
+        const data = await parseApiResponse(response);
         if (response.ok && data.status === 'success') {
           renderCapsules(data.users || []);
         } else {
-          throw new Error(data.error || 'Không thể tải nhật ký.');
+          throw new Error(extractError(data, 'Không thể tải nhật ký.'));
         }
       } catch (error) {
         capsuleList.innerHTML = `<div class="empty-state" style="color: var(--error)">${error.message}</div>`;
@@ -665,12 +680,12 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ repo })
         });
-        const data = await response.json();
+        const data = await parseApiResponse(response);
         if (response.ok) {
           setBanner('Đã xóa một capsule khỏi nhật ký.', 'success');
           loadCapsules();
         } else {
-          throw new Error(data.error || 'Không thể xóa.');
+          throw new Error(extractError(data, 'Không thể xóa.'));
         }
       } catch (error) {
         setBanner(error.message, 'error');
@@ -684,12 +699,12 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
         });
-        const data = await response.json();
+        const data = await parseApiResponse(response);
         if (response.ok) {
           setBanner('Nhật ký đã được làm trống.', 'success');
           loadCapsules();
         } else {
-          throw new Error(data.error || 'Không thể xóa lịch sử.');
+          throw new Error(extractError(data, 'Không thể xóa lịch sử.'));
         }
       } catch (error) {
         setBanner(error.message, 'error');
