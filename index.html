@@ -1,472 +1,837 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VPS Manager Pro - Hiếu Dz</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VPS GitHub Control Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --brand: #ffb347;
+      --brand-accent: #ffcc33;
+      --bg: #010409;
+      --bg-soft: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-muted: rgba(255, 255, 255, 0.68);
+      --success: #34d399;
+      --danger: #fb7185;
+      font-size: 16px;
+    }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0f0f23;
-            color: #e0e0e0;
-            min-height: 100vh;
-            padding: 20px;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 20%, rgba(255, 179, 71, 0.18), transparent 40%),
+        radial-gradient(circle at 80% 0%, rgba(255, 204, 51, 0.2), transparent 35%),
+        #010409;
+      color: #fff;
+      padding: 32px 18px 64px;
+      line-height: 1.5;
+    }
 
-        .header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
-        }
+    .grid-bg::before,
+    .grid-bg::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 120px 120px;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: -2;
+    }
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 8px;
-        }
+    .grid-bg::after {
+      background-size: 70px 70px;
+      opacity: 0.08;
+      animation: drift 48s linear infinite;
+    }
 
-        .header .subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1rem;
-        }
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0);
+      }
+      to {
+        transform: translate3d(-70px, -120px, 0);
+      }
+    }
 
-        .card {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 24px;
-            border: 1px solid #2d2d44;
-        }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 18px;
+    }
 
-        .card-title i {
-            color: #6366f1;
-        }
+    .logo {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-        .input-group {
-            margin-bottom: 20px;
-        }
+    .logo span {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
 
-        .input-group label {
-            display: block;
-            font-weight: 500;
-            color: #e0e0e0;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
+    .logo h1 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
 
-        .input-wrapper {
-            position: relative;
-        }
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-        .input-wrapper i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6366f1;
-        }
+    nav a,
+    .primary-link {
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #fff;
+      font-weight: 500;
+      font-size: 0.92rem;
+    }
 
-        input {
-            width: 100%;
-            padding: 12px 14px 12px 42px;
-            background: #0f0f23;
-            border: 1px solid #2d2d44;
-            border-radius: 8px;
-            color: #e0e0e0;
-            font-size: 0.95rem;
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.2s;
-        }
+    .primary-link {
+      border: none;
+      background: linear-gradient(135deg, #ffb347, #ffcc33);
+      color: #1a1a1a;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        input:focus {
-            outline: none;
-            border-color: #6366f1;
-        }
+    .hero {
+      margin-top: 30px;
+      padding: 32px;
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      background: linear-gradient(120deg, rgba(255, 179, 71, 0.18), rgba(255, 204, 51, 0.12)),
+        rgba(1, 4, 9, 0.75);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
 
-        .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -80px;
+      bottom: -80px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 70%);
+      opacity: 0.4;
+      filter: blur(16px);
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-        }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-        }
+    .hero h2 {
+      font-size: clamp(2.1rem, 4.8vw, 3.3rem);
+      margin: 20px 0 14px;
+      letter-spacing: -0.03em;
+    }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
-            color: white;
-        }
+    .hero p {
+      color: var(--text-muted);
+      max-width: 640px;
+      font-size: 1.05rem;
+    }
 
-        .btn-secondary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
-        }
+    .hero-metrics {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+    }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+    .metric {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-        .status {
-            margin-top: 16px;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: none;
-        }
+    .metric h3 {
+      font-size: 1.8rem;
+    }
 
-        .status.success {
-            background: rgba(34, 197, 94, 0.1);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
+    .metric p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
 
-        .status.error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
+    .main-grid {
+      margin-top: 36px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 24px;
+    }
 
-        .vps-list {
-            display: grid;
-            gap: 12px;
-            margin-top: 16px;
-        }
+    .panel {
+      background: rgba(1, 4, 9, 0.8);
+      border-radius: 26px;
+      border: 1px solid var(--border);
+      padding: 28px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+    }
 
-        .vps-item {
-            background: #0f0f23;
-            padding: 16px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #2d2d44;
-            gap: 16px;
-        }
+    .panel h3 {
+      font-size: 1.35rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-        .vps-item:hover {
-            border-color: #6366f1;
-        }
+    .panel > p {
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
 
-        .vps-info {
-            flex: 1;
-            overflow: hidden;
-        }
+    label {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 10px;
+    }
 
-        .vps-token {
-            font-weight: 600;
-            color: #6366f1;
-            margin-bottom: 4px;
-            font-size: 0.9rem;
-        }
+    .input-wrapper {
+      position: relative;
+    }
 
-        .vps-link {
-            color: #9ca3af;
-            font-size: 0.85rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+    .input-wrapper i {
+      position: absolute;
+      top: 50%;
+      left: 16px;
+      transform: translateY(-50%);
+      color: var(--brand);
+    }
 
-        .btn-open {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
+    input {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
 
-        .btn-open:hover {
-            transform: scale(1.05);
-        }
+    input:focus {
+      outline: none;
+      border-color: rgba(255, 204, 51, 0.7);
+      box-shadow: 0 0 0 3px rgba(255, 204, 51, 0.2);
+    }
 
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
+    button {
+      cursor: pointer;
+    }
 
-        .feature-card {
-            background: #0f0f23;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #2d2d44;
-        }
+    .btn-submit {
+      margin-top: 16px;
+      width: 100%;
+      padding: 16px;
+      border-radius: 18px;
+      border: none;
+      background: linear-gradient(135deg, #ffb347, #ffcc33);
+      color: #1a1a1a;
+      font-weight: 600;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
 
-        .feature-icon {
-            font-size: 2rem;
-            color: #6366f1;
-            margin-bottom: 12px;
-        }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-        .feature-title {
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
+    .btn-submit:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 35px rgba(255, 179, 71, 0.35);
+    }
 
-        .feature-desc {
-            color: #9ca3af;
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
+    .status-box {
+      margin-top: 18px;
+      border-radius: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+      min-height: 52px;
+      font-size: 0.95rem;
+    }
 
-        .footer {
-            text-align: center;
-            color: #6b7280;
-            margin-top: 40px;
-            padding: 20px;
-            font-size: 0.9rem;
-        }
+    .status-box.success {
+      border-color: rgba(52, 211, 153, 0.5);
+      color: var(--success);
+    }
 
-        .spinner {
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-top: 2px solid white;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.8s linear infinite;
-        }
+    .status-box.error {
+      border-color: rgba(251, 113, 133, 0.5);
+      color: #fecdd3;
+    }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
 
-        .loading-text {
-            text-align: center;
-            color: #6366f1;
-            padding: 20px;
-        }
+    .refresh-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8rem;
-            }
+    .vps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
 
-            .card {
-                padding: 20px;
-            }
+    .vps-card {
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
 
-            .vps-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+    .vps-meta {
+      flex: 1;
+    }
 
-            .btn-open {
-                width: 100%;
-            }
-        }
-    </style>
+    .vps-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .vps-heading strong {
+      font-size: 1rem;
+    }
+
+    .status-pill {
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .status-ready {
+      background: rgba(34, 197, 94, 0.15);
+      color: #bbf7d0;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .status-pending {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .status-error {
+      background: rgba(248, 113, 113, 0.15);
+      color: #fecdd3;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    .vps-token {
+      font-weight: 600;
+      color: #ffe8b5;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .vps-link {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      word-break: break-word;
+      margin-top: 6px;
+    }
+
+    .vps-link a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .vps-link a:hover {
+      text-decoration: underline;
+    }
+
+    .pending-text {
+      color: rgba(226, 232, 240, 0.85);
+      font-style: italic;
+    }
+
+    .vps-updated {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+
+    .vps-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-ghost {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .btn-ghost.secondary {
+      color: #f8d477;
+    }
+
+    .btn-ghost:disabled,
+    .btn-ghost[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .placeholder {
+      border-radius: 18px;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      padding: 28px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .info-sections {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .info-card {
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .info-card h4 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .info-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .steps {
+      margin-top: 46px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .step-card {
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.03);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-card span {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+    }
+
+    .step-card h5 {
+      margin-top: 8px;
+      font-size: 1.15rem;
+    }
+
+    .step-card p {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 0.93rem;
+    }
+
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 24px 14px 50px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero,
+      .panel {
+        padding: 24px;
+      }
+
+      .vps-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .vps-actions {
+        flex-direction: row;
+      }
+    }
+  </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-server"></i> VPS Manager Pro</h1>
-            <p class="subtitle">Developed by Hiếu Dz • Based on DuckNoVis Technology</p>
+<body class="grid-bg">
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span>VPS HUB</span>
+        <h1>Bảng điều khiển VPS GitHub</h1>
+      </div>
+      <nav>
+        <a href="https://vps-github.vercel.app" target="_blank" rel="noopener">Giao diện gốc</a>
+        <button class="primary-link" onclick="loadVPSList()">
+          <i class="fas fa-arrows-rotate"></i>
+          Làm mới danh sách
+        </button>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-pill"><i class="fa-solid fa-sparkles"></i> VPS GitHub Edition</div>
+      <h2>Khởi tạo Windows VPS trên GitHub Actions chỉ với một token.</h2>
+      <p>
+        Dashboard này mô phỏng phong cách của <strong>vps-github.vercel.app</strong> nhưng đã khôi phục toàn bộ workflow gốc:
+        mỗi lần tạo, repo private sẽ nhận secret, trigger Windows runner và tự gửi lại Cloudflare link về API cho bạn.
+      </p>
+      <div class="hero-metrics">
+        <div class="metric">
+          <p>Thời gian thiết lập</p>
+          <h3>5-10 phút</h3>
         </div>
-
-        <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-rocket"></i>
-                Tạo VPS Mới
-            </h2>
-
-            <div class="input-group">
-                <label for="githubToken">GitHub Personal Access Token</label>
-                <div class="input-wrapper">
-                    <i class="fab fa-github"></i>
-                    <input 
-                        type="password" 
-                        id="githubToken" 
-                        placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                        autocomplete="off"
-                    >
-                </div>
-            </div>
-
-            <button class="btn btn-primary" id="createBtn" onclick="createVPS()">
-                <i class="fas fa-plus-circle"></i>
-                <span id="btnText">Tạo VPS</span>
-            </button>
-
-            <div id="status" class="status"></div>
+        <div class="metric">
+          <p>Mật khẩu mặc định</p>
+          <h3>hieudz</h3>
         </div>
-
-        <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-list"></i>
-                Danh Sách VPS
-            </h2>
-
-            <button class="btn btn-secondary" onclick="loadVPSList()">
-                <i class="fas fa-sync-alt"></i>
-                Làm Mới
-            </button>
-
-            <div id="vpsList" class="vps-list"></div>
+        <div class="metric">
+          <p>Hạ tầng</p>
+          <h3>GitHub + Vercel</h3>
         </div>
-
-        <div class="card">
-            <h2 class="card-title">
-                <i class="fas fa-star"></i>
-                Tính Năng
-            </h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-desktop"></i></div>
-                    <div class="feature-title">Windows Server</div>
-                    <div class="feature-desc">VPS Windows đầy đủ tính năng</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-sync"></i></div>
-                    <div class="feature-title">Auto Restart</div>
-                    <div class="feature-desc">Tự động sau 5.5 giờ</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <div class="feature-title">Bảo Mật</div>
-                    <div class="feature-desc">Password: hieudz</div>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                    <div class="feature-title">Nhanh Chóng</div>
-                    <div class="feature-desc">Deploy trong vài phút</div>
-                </div>
-            </div>
+        <div class="metric">
+          <p>Giới hạn</p>
+          <h3>~5.5 giờ</h3>
         </div>
+      </div>
+    </section>
 
-        <div class="footer">
-            © 2025 Hiếu Dz • hieuvn.xyz
+    <div class="main-grid">
+      <section class="panel">
+        <h3><i class="fa-solid fa-terminal"></i> Khởi tạo VPS mới</h3>
+        <p>Nhập GitHub Personal Access Token (PAT) đã bật <code>repo</code> &amp; <code>workflow</code> rồi nhấn khởi tạo.</p>
+        <label for="githubToken">GitHub Token</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-key"></i>
+          <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxx" autocomplete="off" />
         </div>
+        <button class="btn-submit" id="createBtn" onclick="createVPS()">
+          <span id="btnText"><i class="fa-solid fa-rocket"></i> Tạo VPS</span>
+        </button>
+        <div id="status" class="status-box"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h3><i class="fa-solid fa-layer-group"></i> Danh sách VPS đang chạy</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Danh sách này được đồng bộ từ API /api/vpsuser.</p>
+          </div>
+          <button class="refresh-btn" onclick="loadVPSList()">
+            <i class="fa-solid fa-rotate"></i>
+            Làm mới
+          </button>
+        </div>
+        <div id="vpsList" class="vps-list">
+          <div class="placeholder">Danh sách đang tải...</div>
+        </div>
+      </section>
     </div>
 
-    <script>
-        const API_BASE = window.location.origin;
+    <div class="info-sections">
+      <div class="info-card">
+        <h4><i class="fa-solid fa-lock"></i> Repo private</h4>
+        <p>Tất cả repo tạo ra đều private và tự nhận secret GH_TOKEN để workflow xử lý.</p>
+      </div>
+      <div class="info-card">
+        <h4><i class="fa-solid fa-stopwatch"></i> Auto restart</h4>
+        <p>Workflow Windows tự khởi tạo lại sau 5.5 giờ đảm bảo phiên hoạt động liên tục.</p>
+      </div>
+      <div class="info-card">
+        <h4><i class="fa-solid fa-cloud"></i> Cloud access</h4>
+        <p>noVNC + Cloudflare Tunnel giúp bạn truy cập trình duyệt từ mọi thiết bị.</p>
+      </div>
+    </div>
 
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-            status.style.display = 'block';
+    <div class="steps">
+      <div class="step-card">
+        <span>Bước 01</span>
+        <h5>Chuẩn bị GitHub PAT</h5>
+        <p>Tạo token classic với quyền repo, workflow (tuỳ chọn write:packages) và copy vào clipboard.</p>
+      </div>
+      <div class="step-card">
+        <span>Bước 02</span>
+        <h5>Dán token và tạo VPS</h5>
+        <p>Nhấn “Tạo VPS” để hệ thống clone template, đặt workflow và trigger build.</p>
+      </div>
+      <div class="step-card">
+        <span>Bước 03</span>
+        <h5>Lấy link truy cập</h5>
+        <p>Trong 5-10 phút, remote-link.txt hoặc danh sách bên cạnh sẽ hiện URL noVNC.</p>
+      </div>
+    </div>
+
+    <footer>© 2025 Hiếu Dz • Mô phỏng giao diện vps-github.vercel.app</footer>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    function setStatus(message = '', type = '') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status-box ${type}`.trim();
+    }
+
+    function escapeHtml(str = '') {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatStatus(status = '') {
+      const normalized = (status || '').toLowerCase();
+      if (normalized === 'ready') return { label: 'Đang hoạt động', className: 'status-ready' };
+      if (normalized === 'error') return { label: 'Workflow lỗi', className: 'status-error' };
+      if (normalized === 'provisioning') return { label: 'Đang cấu hình', className: 'status-pending' };
+      return { label: 'Đang khởi tạo', className: 'status-pending' };
+    }
+
+    function formatUpdatedAt(value) {
+      if (!value) return 'Chưa cập nhật';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString('vi-VN', { hour12: false });
+    }
+
+    function copyLinkFromButton(button) {
+      const decoded = decodeURIComponent(button.dataset.link || '');
+      navigator.clipboard.writeText(decoded);
+      const original = button.innerHTML;
+      button.innerHTML = '<i class="fa-solid fa-check"></i> Đã copy';
+      setTimeout(() => {
+        button.innerHTML = original;
+      }, 1800);
+    }
+
+    function openLinkFromButton(button) {
+      const decoded = decodeURIComponent(button.dataset.link || '');
+      window.open(decoded, '_blank');
+    }
+
+    async function createVPS() {
+      const token = document.getElementById('githubToken').value.trim();
+      const btn = document.getElementById('createBtn');
+      const btnText = document.getElementById('btnText');
+
+      if (!token) {
+        setStatus('⚠️ Vui lòng nhập GitHub token hợp lệ.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span>';
+
+      try {
+        const response = await fetch(`${API_BASE}/api/create-vps`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ github_token: token })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setStatus(`✅ ${data.message}. Repo: ${data.repository}. Vui lòng chờ workflow hoàn tất.`, 'success');
+          setTimeout(loadVPSList, 6000);
+        } else {
+          setStatus(`❌ ${data.error || 'Không thể tạo VPS. Thử lại sau.'}`, 'error');
         }
+      } catch (error) {
+        setStatus(`❌ Lỗi kết nối: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btnText.innerHTML = '<i class="fa-solid fa-rocket"></i> Tạo VPS';
+      }
+    }
 
-        async function createVPS() {
-            const token = document.getElementById('githubToken').value.trim();
-            const btn = document.getElementById('createBtn');
-            const btnText = document.getElementById('btnText');
+    async function loadVPSList() {
+      const list = document.getElementById('vpsList');
+      list.innerHTML = '<div class="placeholder"><div class="spinner" style="margin:0 auto 12px"></div>Đang lấy dữ liệu...</div>';
 
-            if (!token) {
-                showStatus('⚠️ Vui lòng nhập GitHub Token', 'error');
-                return;
-            }
+      try {
+        const response = await fetch(`${API_BASE}/api/vpsuser`);
+        const data = await response.json();
 
-            btn.disabled = true;
-            btnText.innerHTML = '<div class="spinner"></div>';
+        if (data.status === 'success' && data.users.length > 0) {
+          list.innerHTML = data.users
+            .map((user) => {
+              const { label, className } = formatStatus(user.status);
+              const tokenHint = user.token_hint || 'PAT ẩn';
+              const repoLabel = user.repo || 'vps-project';
+              const updated = formatUpdatedAt(user.updated_at);
+              const link = user.remote_link || '';
+              const linkSection = link
+                ? `<div class="vps-link"><a href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(link)}</a></div>`
+                : '<div class="vps-link pending-text">Workflow đang chạy, link sẽ hiển thị ngay khi Cloudflare trả về.</div>';
+              const encodedLink = encodeURIComponent(link);
+              const buttons = link
+                ? `
+                  <button class="btn-ghost secondary" data-link="${encodedLink}" onclick="copyLinkFromButton(this)">
+                    <i class="fa-solid fa-copy"></i> Copy
+                  </button>
+                  <button class="btn-ghost" data-link="${encodedLink}" onclick="openLinkFromButton(this)">
+                    <i class="fa-solid fa-up-right-from-square"></i> Mở
+                  </button>
+                `
+                : `
+                  <button class="btn-ghost secondary" disabled>
+                    <i class="fa-solid fa-hourglass-half"></i> Chờ link
+                  </button>
+                  <button class="btn-ghost" disabled>
+                    <i class="fa-solid fa-ban"></i> Mở
+                  </button>
+                `;
 
-            try {
-                const response = await fetch(`${API_BASE}/api/create-vps`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ github_token: token })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showStatus(`✅ ${data.message} - Repo: ${data.repository}. Đợi 5-10 phút...`, 'success');
-                    setTimeout(loadVPSList, 5000);
-                } else {
-                    showStatus(`❌ ${data.error || 'Không thể tạo VPS'}`, 'error');
-                }
-            } catch (error) {
-                showStatus(`❌ Lỗi: ${error.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-                btnText.innerHTML = 'Tạo VPS';
-            }
+              return `
+                <div class="vps-card">
+                  <div class="vps-meta">
+                    <div class="vps-heading">
+                      <strong>${escapeHtml(repoLabel)}</strong>
+                      <span class="status-pill ${className}">${label}</span>
+                    </div>
+                    <div class="vps-token">🔑 ${escapeHtml(tokenHint)}</div>
+                    ${linkSection}
+                    <div class="vps-updated">Cập nhật: ${escapeHtml(updated)}</div>
+                  </div>
+                  <div class="vps-actions">
+                    ${buttons}
+                  </div>
+                </div>
+              `;
+            })
+            .join('');
+        } else {
+          list.innerHTML = '<div class="placeholder">Chưa có VPS nào hoạt động.</div>';
         }
+      } catch (error) {
+        list.innerHTML = '<div class="placeholder" style="color:#fecdd3; border-color: rgba(251,113,133,0.4);">❌ Không thể tải dữ liệu.</div>';
+      }
+    }
 
-        async function loadVPSList() {
-            const vpsList = document.getElementById('vpsList');
-            vpsList.innerHTML = '<div class="loading-text"><div class="spinner" style="margin: 0 auto;"></div></div>';
-
-            try {
-                const response = await fetch(`${API_BASE}/api/vpsuser`);
-                const data = await response.json();
-
-                if (data.status === 'success' && data.users.length > 0) {
-                    vpsList.innerHTML = data.users.map(user => `
-                        <div class="vps-item">
-                            <div class="vps-info">
-                                <div class="vps-token">🔑 ${user.token}</div>
-                                <div class="vps-link">${user.link}</div>
-                            </div>
-                            <button class="btn-open" onclick="window.open('${user.link}', '_blank')">
-                                <i class="fas fa-external-link-alt"></i> Mở
-                            </button>
-                        </div>
-                    `).join('');
-                } else {
-                    vpsList.innerHTML = '<div style="text-align:center;color:#6b7280;padding:20px;">Chưa có VPS</div>';
-                }
-            } catch (error) {
-                vpsList.innerHTML = '<div style="text-align:center;color:#ef4444;padding:20px;">❌ Không thể tải</div>';
-            }
-        }
-
-        window.addEventListener('load', loadVPSList);
-    </script>
+    window.addEventListener('load', loadVPSList);
+  </script>
 </body>
 </html>
