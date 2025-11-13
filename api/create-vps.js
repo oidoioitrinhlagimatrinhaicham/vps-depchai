@@ -186,16 +186,22 @@ jobs:
             Invoke-WebRequest -Uri 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile 'cloudflared.exe' -TimeoutSec 120
 
             Write-Host '🚀 Khởi chạy TightVNC'
+            $tightVncDir = Join-Path $env:ProgramFiles 'TightVNC'
+            $tightVncExe = Join-Path $tightVncDir 'tvnserver.exe'
+            if (-not (Test-Path $tightVncExe)) {
+              throw "Không tìm thấy TightVNC tại $tightVncExe"
+            }
             Stop-Process -Name 'tvnserver' -Force -ErrorAction SilentlyContinue
             Stop-Service -Name 'tvnserver' -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 3
-            Start-Process -FilePath 'C:\Program Files\TightVNC\tvnserver.exe' -ArgumentList '-run' -WindowStyle Hidden
+            Start-Process -FilePath $tightVncExe -ArgumentList '-run' -WindowStyle Hidden
             Start-Sleep -Seconds 10
 
             Write-Host '🌐 Khởi chạy websockify & Cloudflared'
-            Start-Process -FilePath 'python' -ArgumentList '-m','websockify','6080','127.0.0.1:5900','--web',$noVncPath -WindowStyle Hidden
+            Start-Process -FilePath 'python' -ArgumentList @('-m','websockify','6080','127.0.0.1:5900','--web',$noVncPath) -WindowStyle Hidden
             Set-Content -Path 'cloudflared.log' -Value '' -Encoding UTF8
-            Start-Process -FilePath '.\cloudflared.exe' -ArgumentList 'tunnel','--url','http://localhost:6080','--no-autoupdate' -RedirectStandardOutput 'cloudflared.log' -RedirectStandardError 'cloudflared-error.log' -WindowStyle Hidden
+            $cloudflaredExe = Join-Path (Get-Location) 'cloudflared.exe'
+            Start-Process -FilePath $cloudflaredExe -ArgumentList @('tunnel','--url','http://localhost:6080','--no-autoupdate') -RedirectStandardOutput 'cloudflared.log' -RedirectStandardError 'cloudflared-error.log' -WindowStyle Hidden
 
             $cloudflaredUrl = ''
             for ($attempt = 1; $attempt -le 200; $attempt++) {
