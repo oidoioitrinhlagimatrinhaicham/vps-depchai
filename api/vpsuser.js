@@ -14,7 +14,7 @@ function sortByUpdatedAt(a, b) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -68,11 +68,47 @@ module.exports = async (req, res) => {
     if (normalizedStatus === 'error') {
       delete entry.remote_link;
     }
+    if (requestedAt) {
+      entry.requested_at = requestedAt;
+    } else if (!entry.requested_at) {
+      entry.requested_at = entry.updated_at;
+    }
+    if (normalizedStatus === 'error') {
+      delete entry.remote_link;
+    }
 
     records[repo] = entry;
     saveRecords(records);
 
     return res.status(200).json({ status: 'success' });
+  }
+
+    records[repo] = entry;
+    saveRecords(records);
+
+    return res.status(200).json({ status: 'success' });
+  }
+
+  if (req.method === 'DELETE') {
+    const { repo } = req.body || {};
+    const records = loadRecords();
+
+    if (repo) {
+      if (records[repo]) {
+        delete records[repo];
+        saveRecords(records);
+        return res.status(200).json({ status: 'success', removed: 1 });
+      }
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
+    const total = Object.keys(records).length;
+    if (total === 0) {
+      return res.status(200).json({ status: 'success', removed: 0 });
+    }
+
+    saveRecords({});
+    return res.status(200).json({ status: 'success', removed: total });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

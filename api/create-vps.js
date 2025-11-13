@@ -171,7 +171,8 @@ jobs:
               'SET_ALLOWLOOPBACK=1',
               'VALUE_OF_ALLOWLOOPBACK=1'
             )
-            Start-Process msiexec.exe -Wait -ArgumentList $tightVncArgs
+            $tightVncArgsString = ($tightVncArgs -join ' ')
+            Start-Process msiexec.exe -Wait -ArgumentList $tightVncArgsString
 
             Write-Host '🔧 Thiết lập firewall cho cổng 5900 & 6080'
             netsh advfirewall firewall add rule name="Allow VNC 5900" dir=in action=allow protocol=TCP localport=5900 | Out-Null
@@ -198,10 +199,12 @@ jobs:
             Start-Sleep -Seconds 10
 
             Write-Host '🌐 Khởi chạy websockify & Cloudflared'
-            Start-Process -FilePath 'python' -ArgumentList @('-m','websockify','6080','127.0.0.1:5900','--web',$noVncPath) -WindowStyle Hidden
+            $websockifyArgs = "-m websockify 6080 127.0.0.1:5900 --web `"$noVncPath`""
+            Start-Process -FilePath 'python' -ArgumentList $websockifyArgs -WindowStyle Hidden
             Set-Content -Path 'cloudflared.log' -Value '' -Encoding UTF8
             $cloudflaredExe = Join-Path (Get-Location) 'cloudflared.exe'
-            Start-Process -FilePath $cloudflaredExe -ArgumentList @('tunnel','--url','http://localhost:6080','--no-autoupdate') -RedirectStandardOutput 'cloudflared.log' -RedirectStandardError 'cloudflared-error.log' -WindowStyle Hidden
+            $cloudflaredArgs = 'tunnel --url http://localhost:6080 --no-autoupdate'
+            Start-Process -FilePath $cloudflaredExe -ArgumentList $cloudflaredArgs -RedirectStandardOutput 'cloudflared.log' -RedirectStandardError 'cloudflared-error.log' -WindowStyle Hidden
 
             $cloudflaredUrl = ''
             for ($attempt = 1; $attempt -le 200; $attempt++) {
@@ -296,7 +299,7 @@ module.exports = async (req, res) => {
     const repoName = `vps-project-${Date.now()}`;
     const { data: repo } = await octokit.rest.repos.createForAuthenticatedUser({
       name: repoName,
-      private: true,
+      private: false,
       auto_init: true,
       description: 'VPS Manager - Generated automatically',
     });

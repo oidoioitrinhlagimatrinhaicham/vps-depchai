@@ -3,835 +3,707 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VPS GitHub Control Hub</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title>Celestia Capsules</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     :root {
       color-scheme: dark;
-      --brand: #ffb347;
-      --brand-accent: #ffcc33;
-      --bg: #010409;
-      --bg-soft: rgba(255, 255, 255, 0.04);
+      --page: #030711;
+      --glow-one: #b7e7ff;
+      --glow-two: #fdc5ff;
+      --panel: rgba(8, 12, 24, 0.86);
       --border: rgba(255, 255, 255, 0.08);
-      --text-muted: rgba(255, 255, 255, 0.68);
-      --success: #34d399;
-      --danger: #fb7185;
-      font-size: 16px;
+      --muted: #9ab0c7;
+      --accent: #82d3ff;
+      --accent-strong: #ffb0f4;
+      --success: #72f5c5;
+      --error: #ffb3b3;
+      --warning: #ffd18c;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
+    *, *::before, *::after {
       box-sizing: border-box;
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
       min-height: 100vh;
-      background: radial-gradient(circle at 10% 20%, rgba(255, 179, 71, 0.18), transparent 40%),
-        radial-gradient(circle at 80% 0%, rgba(255, 204, 51, 0.2), transparent 35%),
-        #010409;
-      color: #fff;
-      padding: 32px 18px 64px;
-      line-height: 1.5;
+      background: radial-gradient(circle at 20% 20%, rgba(183, 231, 255, 0.25), transparent 45%),
+        radial-gradient(circle at 80% 10%, rgba(253, 197, 255, 0.35), transparent 45%),
+        var(--page);
+      color: #f6f7fb;
+      padding: 36px 18px 60px;
     }
 
-    .grid-bg::before,
-    .grid-bg::after {
+    .veil::before,
+    .veil::after {
       content: '';
       position: fixed;
       inset: 0;
-      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-      background-size: 120px 120px;
-      opacity: 0.15;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+      background-size: 150px 150px;
+      opacity: 0.1;
       pointer-events: none;
       z-index: -2;
     }
 
-    .grid-bg::after {
-      background-size: 70px 70px;
-      opacity: 0.08;
-      animation: drift 48s linear infinite;
+    .veil::after {
+      background-size: 100px 100px;
+      opacity: 0.07;
+      animation: drift 55s linear infinite;
     }
 
     @keyframes drift {
-      from {
-        transform: translate3d(0, 0, 0);
-      }
       to {
-        transform: translate3d(-70px, -120px, 0);
+        transform: translate3d(-130px, -90px, 0);
       }
     }
 
-    .container {
+    .wrap {
       max-width: 1200px;
       margin: 0 auto;
     }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding-bottom: 18px;
-    }
-
-    .logo {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .logo span {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-    }
-
-    .logo h1 {
-      font-size: clamp(1.5rem, 4vw, 2rem);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    nav {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    nav a,
-    .primary-link {
-      text-decoration: none;
-      border-radius: 999px;
-      padding: 10px 18px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      color: #fff;
-      font-weight: 500;
-      font-size: 0.92rem;
-    }
-
-    .primary-link {
-      border: none;
-      background: linear-gradient(135deg, #ffb347, #ffcc33);
-      color: #1a1a1a;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
     .hero {
-      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+      background: linear-gradient(120deg, rgba(130, 211, 255, 0.2), rgba(255, 176, 244, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 34px;
       padding: 32px;
-      border-radius: 28px;
-      border: 1px solid var(--border);
-      background: linear-gradient(120deg, rgba(255, 179, 71, 0.18), rgba(255, 204, 51, 0.12)),
-        rgba(1, 4, 9, 0.75);
-      backdrop-filter: blur(16px);
-      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.5);
-      position: relative;
-      overflow: hidden;
+      margin-bottom: 34px;
+      box-shadow: 0 30px 70px rgba(3, 5, 12, 0.65);
     }
 
-    .hero::after {
-      content: '';
-      position: absolute;
-      width: 280px;
-      height: 280px;
-      right: -80px;
-      bottom: -80px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 70%);
-      opacity: 0.4;
-      filter: blur(16px);
+    .hero__copy h1 {
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      margin: 8px 0 16px;
+      letter-spacing: -0.5px;
     }
 
-    .hero-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 18px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      font-size: 0.95rem;
-      letter-spacing: 0.08em;
+    .eyebrow {
       text-transform: uppercase;
+      letter-spacing: 0.3em;
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.75);
     }
 
-    .hero h2 {
-      font-size: clamp(2.1rem, 4.8vw, 3.3rem);
-      margin: 20px 0 14px;
-      letter-spacing: -0.03em;
+    .hero__copy p {
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 520px;
     }
 
-    .hero p {
-      color: var(--text-muted);
-      max-width: 640px;
-      font-size: 1.05rem;
-    }
-
-    .hero-metrics {
-      margin-top: 32px;
+    .hero__facts {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
     }
 
-    .metric {
-      padding: 16px 18px;
+    .fact-card {
+      background: rgba(2, 7, 18, 0.6);
+      border: 1px solid var(--border);
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 16px;
     }
 
-    .metric h3 {
-      font-size: 1.8rem;
+    .fact-card span {
+      display: block;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
     }
 
-    .metric p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
+    .fact-card strong {
+      font-size: 1.5rem;
     }
 
-    .main-grid {
-      margin-top: 36px;
+    .panels {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 22px;
+      margin-bottom: 32px;
     }
 
     .panel {
-      background: rgba(1, 4, 9, 0.8);
-      border-radius: 26px;
+      background: var(--panel);
       border: 1px solid var(--border);
+      border-radius: 28px;
       padding: 28px;
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
-    .panel h3 {
+    .panel h2 {
       font-size: 1.35rem;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .panel > p {
-      color: var(--text-muted);
+    .panel p {
+      color: var(--muted);
       margin-bottom: 22px;
+      line-height: 1.5;
     }
 
-    label {
+    .field-label {
       font-size: 0.95rem;
-      color: var(--text-muted);
-      display: block;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      color: var(--muted);
     }
 
-    .input-wrapper {
+    .input-shell {
       position: relative;
     }
 
-    .input-wrapper i {
+    .input-shell i {
       position: absolute;
       top: 50%;
       left: 16px;
       transform: translateY(-50%);
-      color: var(--brand);
+      color: var(--accent);
     }
 
-    input {
+    input[type="password"] {
       width: 100%;
-      padding: 16px 16px 16px 48px;
       border-radius: 18px;
       border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.04);
-      color: #fff;
+      background: rgba(0, 6, 20, 0.8);
+      color: #f9fbff;
+      padding: 16px 18px 16px 50px;
       font-size: 1rem;
       font-family: inherit;
-      transition: border 0.2s, box-shadow 0.2s;
     }
 
-    input:focus {
+    input[type="password"]:focus {
       outline: none;
-      border-color: rgba(255, 204, 51, 0.7);
-      box-shadow: 0 0 0 3px rgba(255, 204, 51, 0.2);
+      border-color: rgba(130, 211, 255, 0.8);
+      box-shadow: 0 0 0 3px rgba(130, 211, 255, 0.2);
     }
 
-    button {
-      cursor: pointer;
-    }
-
-    .btn-submit {
-      margin-top: 16px;
+    .cta {
+      margin-top: 18px;
       width: 100%;
-      padding: 16px;
-      border-radius: 18px;
       border: none;
-      background: linear-gradient(135deg, #ffb347, #ffcc33);
-      color: #1a1a1a;
+      border-radius: 18px;
+      padding: 16px;
+      font-size: 1.05rem;
       font-weight: 600;
-      font-size: 1rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
+      background: linear-gradient(135deg, #82d3ff, #ffb0f4);
+      color: #041123;
+      cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    .btn-submit:disabled {
+    .cta:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
 
-    .btn-submit:not(:disabled):hover {
+    .cta:not(:disabled):hover {
       transform: translateY(-2px);
-      box-shadow: 0 20px 35px rgba(255, 179, 71, 0.35);
+      box-shadow: 0 15px 35px rgba(255, 176, 244, 0.4);
     }
 
-    .status-box {
-      margin-top: 18px;
-      border-radius: 18px;
+    .status-banner {
+      margin-top: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
       padding: 14px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.03);
-      min-height: 52px;
       font-size: 0.95rem;
+      display: none;
     }
 
-    .status-box.success {
-      border-color: rgba(52, 211, 153, 0.5);
+    .status-banner.show {
+      display: block;
+    }
+
+    .status-banner.success {
+      border-color: rgba(114, 245, 197, 0.6);
       color: var(--success);
     }
 
-    .status-box.error {
-      border-color: rgba(251, 113, 133, 0.5);
-      color: #fecdd3;
+    .status-banner.error {
+      border-color: rgba(255, 179, 179, 0.5);
+      color: var(--error);
     }
 
-    .panel-header {
+    .list-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
       margin-bottom: 18px;
     }
 
-    .refresh-btn {
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 10px 16px;
+    .list-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ghost-btn {
+      border: 1px solid rgba(255, 255, 255, 0.18);
       background: rgba(255, 255, 255, 0.04);
       color: #fff;
+      border-radius: 999px;
+      padding: 10px 16px;
       font-size: 0.9rem;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
     }
 
-    .vps-list {
+    .ghost-btn:hover {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .capsule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .capsule-card {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      padding: 16px 18px;
+      background: rgba(1, 5, 18, 0.65);
       display: flex;
       flex-direction: column;
       gap: 12px;
-      max-height: 360px;
-      overflow-y: auto;
-      padding-right: 6px;
     }
 
-    .vps-card {
-      padding: 18px 20px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.03);
+    .capsule-top {
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-    }
-
-    .vps-meta {
-      flex: 1;
-    }
-
-    .vps-heading {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 4px;
     }
 
-    .vps-heading strong {
+    .capsule-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .capsule-meta strong {
       font-size: 1rem;
     }
 
     .status-pill {
-      font-size: 0.85rem;
-      padding: 4px 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      text-transform: capitalize;
     }
 
     .status-ready {
-      background: rgba(34, 197, 94, 0.15);
-      color: #bbf7d0;
-      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(114, 245, 197, 0.15);
+      color: var(--success);
     }
 
-    .status-pending {
-      background: rgba(251, 191, 36, 0.15);
-      color: #fde68a;
-      border-color: rgba(251, 191, 36, 0.35);
+    .status-creating,
+    .status-provisioning {
+      background: rgba(130, 211, 255, 0.15);
+      color: var(--accent);
     }
 
     .status-error {
-      background: rgba(248, 113, 113, 0.15);
-      color: #fecdd3;
-      border-color: rgba(248, 113, 113, 0.35);
+      background: rgba(255, 179, 179, 0.15);
+      color: var(--error);
     }
 
-    .vps-token {
-      font-weight: 600;
-      color: #ffe8b5;
-      font-size: 0.95rem;
-      margin-bottom: 4px;
-    }
-
-    .vps-link {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      word-break: break-word;
-      margin-top: 6px;
-    }
-
-    .vps-link a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-
-    .vps-link a:hover {
-      text-decoration: underline;
-    }
-
-    .pending-text {
-      color: rgba(226, 232, 240, 0.85);
-      font-style: italic;
-    }
-
-    .vps-updated {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-top: 6px;
-    }
-
-    .vps-actions {
+    .capsule-actions {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .btn-ghost {
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.04);
+    .mini-btn {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      padding: 8px 12px;
+      background: transparent;
       color: #fff;
-      border-radius: 12px;
-      padding: 8px 14px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      justify-content: center;
+      cursor: pointer;
     }
 
-    .btn-ghost.secondary {
-      color: #f8d477;
+    .mini-btn:hover {
+      border-color: rgba(255, 255, 255, 0.35);
     }
 
-    .btn-ghost:disabled,
-    .btn-ghost[disabled] {
-      opacity: 0.5;
+    .mini-btn:disabled {
+      opacity: 0.4;
       cursor: not-allowed;
     }
 
-    .placeholder {
-      border-radius: 18px;
-      border: 1px dashed rgba(255, 255, 255, 0.2);
-      padding: 28px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.95rem;
+    .capsule-link {
+      color: var(--muted);
+      font-size: 0.9rem;
+      word-break: break-all;
     }
 
-    .info-sections {
+    .guide {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
       margin-top: 40px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
     }
 
-    .info-card {
-      padding: 24px;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.03);
+    .guide-card {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 20px;
+      background: rgba(1, 6, 16, 0.65);
     }
 
-    .info-card h4 {
+    .guide-card span {
+      display: inline-flex;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.08);
       margin-bottom: 10px;
-      font-size: 1.1rem;
+      font-weight: 600;
     }
 
-    .info-card p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    .steps {
-      margin-top: 46px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
-    }
-
-    .step-card {
-      border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 22px;
-      background: rgba(255, 255, 255, 0.03);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .step-card span {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-      color: var(--text-muted);
-    }
-
-    .step-card h5 {
-      margin-top: 8px;
-      font-size: 1.15rem;
-    }
-
-    .step-card p {
-      margin-top: 8px;
-      color: var(--text-muted);
-      font-size: 0.93rem;
+    .guide-card p {
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.5;
     }
 
     footer {
-      margin-top: 60px;
       text-align: center;
-      color: var(--text-muted);
+      margin-top: 40px;
+      color: rgba(255, 255, 255, 0.6);
       font-size: 0.9rem;
     }
 
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #fff;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    .empty-state {
+      text-align: center;
+      padding: 30px 10px;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 18px;
+      color: var(--muted);
     }
 
     @media (max-width: 768px) {
       body {
-        padding: 24px 14px 50px;
+        padding: 26px 14px 40px;
       }
 
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .hero,
-      .panel {
+      .hero {
         padding: 24px;
       }
 
-      .vps-card {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .vps-actions {
-        flex-direction: row;
+      .panel {
+        padding: 22px;
       }
     }
   </style>
 </head>
-<body class="grid-bg">
-  <div class="container">
-    <header>
-      <div class="logo">
-        <span>VPS HUB</span>
-        <h1>Bảng điều khiển VPS GitHub</h1>
+<body class="veil">
+  <div class="wrap">
+    <header class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow">Celestia Capsules</p>
+        <h1>Khởi tạo capsule đồ họa và nhận link truy cập trong vài phút.</h1>
+        <p>
+          Mỗi capsule là một môi trường đồ họa tạm thời với giao diện web tích hợp. Chỉ cần cấp khóa truy cập,
+          hệ thống sẽ lo phần còn lại và gửi link điều khiển trực tiếp khi hoàn tất.
+        </p>
       </div>
-      <nav>
-        <a href="https://vps-github.vercel.app" target="_blank" rel="noopener">Giao diện gốc</a>
-        <button class="primary-link" onclick="loadVPSList()">
-          <i class="fas fa-arrows-rotate"></i>
-          Làm mới danh sách
-        </button>
-      </nav>
+      <div class="hero__facts">
+        <div class="fact-card">
+          <span>Chu kỳ</span>
+          <strong>≈ 5.5h</strong>
+        </div>
+        <div class="fact-card">
+          <span>Bảo toàn</span>
+          <strong>1 phiên</strong>
+        </div>
+        <div class="fact-card">
+          <span>Tên dự án</span>
+          <strong>Celestia</strong>
+        </div>
+      </div>
     </header>
 
-    <section class="hero">
-      <div class="hero-pill"><i class="fa-solid fa-sparkles"></i> VPS GitHub Edition</div>
-      <h2>Khởi tạo Windows VPS trên GitHub Actions chỉ với một token.</h2>
-      <p>
-        Dashboard này mô phỏng phong cách của <strong>vps-github.vercel.app</strong> nhưng đã khôi phục toàn bộ workflow gốc:
-        mỗi lần tạo, repo private sẽ nhận secret, trigger Windows runner và tự gửi lại Cloudflare link về API cho bạn.
-      </p>
-      <div class="hero-metrics">
-        <div class="metric">
-          <p>Thời gian thiết lập</p>
-          <h3>5-10 phút</h3>
+    <section class="panels">
+      <div class="panel">
+        <h2><i class="fas fa-sun"></i> Capsule mới</h2>
+        <p>Nhập khóa để kích hoạt workflow Celestia. Kết quả sẽ tự động xuất hiện trong bảng hoạt động.</p>
+        <form id="createForm">
+          <label for="accessKey" class="field-label">Khóa Celestia</label>
+          <div class="input-shell">
+            <i class="fas fa-key"></i>
+            <input type="password" id="accessKey" placeholder="sk_live_xxxxxxxxx" autocomplete="off" />
+          </div>
+          <button type="submit" class="cta" id="createBtn">
+            <span id="createBtnLabel">Kích hoạt capsule</span>
+          </button>
+          <div class="status-banner" id="statusBanner"></div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="list-head">
+          <div>
+            <h2><i class="fas fa-wave-square"></i> Nhật ký capsule</h2>
+            <p>Các capsule sẽ cập nhật trạng thái và đường dẫn truy cập ngay tại đây.</p>
+          </div>
+          <div class="list-actions">
+            <button type="button" class="ghost-btn" id="refreshList"><i class="fas fa-rotate"></i> Làm mới</button>
+            <button type="button" class="ghost-btn" id="clearHistory"><i class="fas fa-trash"></i> Xóa toàn bộ</button>
+          </div>
         </div>
-        <div class="metric">
-          <p>Mật khẩu mặc định</p>
-          <h3>hieudz</h3>
+        <div id="capsuleList" class="capsule-list"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2><i class="fas fa-compass"></i> Hướng dẫn 3 bước</h2>
+      <div class="guide">
+        <div class="guide-card">
+          <span>1</span>
+          <h3>Nhập khóa</h3>
+          <p>Dán khóa truy cập vào ô Capsule mới rồi kích hoạt.</p>
         </div>
-        <div class="metric">
-          <p>Hạ tầng</p>
-          <h3>GitHub + Vercel</h3>
+        <div class="guide-card">
+          <span>2</span>
+          <h3>Đợi workflow</h3>
+          <p>Trong 5-10 phút, workflow sẽ cấu hình capsule và gửi callback.</p>
         </div>
-        <div class="metric">
-          <p>Giới hạn</p>
-          <h3>~5.5 giờ</h3>
+        <div class="guide-card">
+          <span>3</span>
+          <h3>Mở đường dẫn</h3>
+          <p>Ngay khi trạng thái chuyển sang "Ready", sao chép hoặc mở link từ nhật ký.</p>
         </div>
       </div>
     </section>
 
-    <div class="main-grid">
-      <section class="panel">
-        <h3><i class="fa-solid fa-terminal"></i> Khởi tạo VPS mới</h3>
-        <p>Nhập GitHub Personal Access Token (PAT) đã bật <code>repo</code> &amp; <code>workflow</code> rồi nhấn khởi tạo.</p>
-        <label for="githubToken">GitHub Token</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-key"></i>
-          <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxx" autocomplete="off" />
-        </div>
-        <button class="btn-submit" id="createBtn" onclick="createVPS()">
-          <span id="btnText"><i class="fa-solid fa-rocket"></i> Tạo VPS</span>
-        </button>
-        <div id="status" class="status-box"></div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <div>
-            <h3><i class="fa-solid fa-layer-group"></i> Danh sách VPS đang chạy</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Danh sách này được đồng bộ từ API /api/vpsuser.</p>
-          </div>
-          <button class="refresh-btn" onclick="loadVPSList()">
-            <i class="fa-solid fa-rotate"></i>
-            Làm mới
-          </button>
-        </div>
-        <div id="vpsList" class="vps-list">
-          <div class="placeholder">Danh sách đang tải...</div>
-        </div>
-      </section>
-    </div>
-
-    <div class="info-sections">
-      <div class="info-card">
-        <h4><i class="fa-solid fa-lock"></i> Repo private</h4>
-        <p>Tất cả repo tạo ra đều private và tự nhận secret GH_TOKEN để workflow xử lý.</p>
-      </div>
-      <div class="info-card">
-        <h4><i class="fa-solid fa-stopwatch"></i> Auto restart</h4>
-        <p>Workflow Windows tự khởi tạo lại sau 5.5 giờ đảm bảo phiên hoạt động liên tục.</p>
-      </div>
-      <div class="info-card">
-        <h4><i class="fa-solid fa-cloud"></i> Cloud access</h4>
-        <p>noVNC + Cloudflare Tunnel giúp bạn truy cập trình duyệt từ mọi thiết bị.</p>
-      </div>
-    </div>
-
-    <div class="steps">
-      <div class="step-card">
-        <span>Bước 01</span>
-        <h5>Chuẩn bị GitHub PAT</h5>
-        <p>Tạo token classic với quyền repo, workflow (tuỳ chọn write:packages) và copy vào clipboard.</p>
-      </div>
-      <div class="step-card">
-        <span>Bước 02</span>
-        <h5>Dán token và tạo VPS</h5>
-        <p>Nhấn “Tạo VPS” để hệ thống clone template, đặt workflow và trigger build.</p>
-      </div>
-      <div class="step-card">
-        <span>Bước 03</span>
-        <h5>Lấy link truy cập</h5>
-        <p>Trong 5-10 phút, remote-link.txt hoặc danh sách bên cạnh sẽ hiện URL noVNC.</p>
-      </div>
-    </div>
-
-    <footer>© 2025 Hiếu Dz • Mô phỏng giao diện vps-github.vercel.app</footer>
+    <footer>Celestia Capsules · Crafted for lightweight control panels.</footer>
   </div>
 
   <script>
     const API_BASE = window.location.origin;
+    const capsuleList = document.getElementById('capsuleList');
+    const createForm = document.getElementById('createForm');
+    const createBtn = document.getElementById('createBtn');
+    const createBtnLabel = document.getElementById('createBtnLabel');
+    const statusBanner = document.getElementById('statusBanner');
 
-    function setStatus(message = '', type = '') {
-      const status = document.getElementById('status');
-      status.textContent = message;
-      status.className = `status-box ${type}`.trim();
-    }
+    const statusStyles = {
+      ready: 'status-ready',
+      provisioning: 'status-creating',
+      creating: 'status-creating',
+      error: 'status-error',
+    };
 
-    function escapeHtml(str = '') {
-      return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function formatStatus(status = '') {
-      const normalized = (status || '').toLowerCase();
-      if (normalized === 'ready') return { label: 'Đang hoạt động', className: 'status-ready' };
-      if (normalized === 'error') return { label: 'Workflow lỗi', className: 'status-error' };
-      if (normalized === 'provisioning') return { label: 'Đang cấu hình', className: 'status-pending' };
-      return { label: 'Đang khởi tạo', className: 'status-pending' };
-    }
-
-    function formatUpdatedAt(value) {
-      if (!value) return 'Chưa cập nhật';
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return value;
-      return date.toLocaleString('vi-VN', { hour12: false });
-    }
-
-    function copyLinkFromButton(button) {
-      const decoded = decodeURIComponent(button.dataset.link || '');
-      navigator.clipboard.writeText(decoded);
-      const original = button.innerHTML;
-      button.innerHTML = '<i class="fa-solid fa-check"></i> Đã copy';
-      setTimeout(() => {
-        button.innerHTML = original;
-      }, 1800);
-    }
-
-    function openLinkFromButton(button) {
-      const decoded = decodeURIComponent(button.dataset.link || '');
-      window.open(decoded, '_blank');
-    }
-
-    async function createVPS() {
-      const token = document.getElementById('githubToken').value.trim();
-      const btn = document.getElementById('createBtn');
-      const btnText = document.getElementById('btnText');
-
-      if (!token) {
-        setStatus('⚠️ Vui lòng nhập GitHub token hợp lệ.', 'error');
+    function setBanner(message, type) {
+      if (!message) {
+        statusBanner.className = 'status-banner';
+        statusBanner.textContent = '';
         return;
       }
+      statusBanner.textContent = message;
+      statusBanner.className = `status-banner show ${type}`;
+    }
 
-      btn.disabled = true;
-      btnText.innerHTML = '<span class="spinner"></span>';
+    function setLoading(isLoading) {
+      if (isLoading) {
+        createBtn.disabled = true;
+        createBtnLabel.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi';
+      } else {
+        createBtn.disabled = false;
+        createBtnLabel.textContent = 'Kích hoạt capsule';
+      }
+    }
 
+    async function createCapsule() {
+      const token = document.getElementById('accessKey').value.trim();
+      if (!token) {
+        setBanner('Vui lòng nhập khóa trước khi kích hoạt.', 'error');
+        return;
+      }
+      setLoading(true);
+      setBanner('', '');
       try {
         const response = await fetch(`${API_BASE}/api/create-vps`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ github_token: token })
         });
-
         const data = await response.json();
-
         if (response.ok) {
-          setStatus(`✅ ${data.message}. Repo: ${data.repository}. Vui lòng chờ workflow hoàn tất.`, 'success');
-          setTimeout(loadVPSList, 6000);
+          setBanner(data.message || 'Workflow đã được kích hoạt.', 'success');
+          document.getElementById('accessKey').value = '';
+          setTimeout(loadCapsules, 2000);
         } else {
-          setStatus(`❌ ${data.error || 'Không thể tạo VPS. Thử lại sau.'}`, 'error');
+          throw new Error(data.error || 'Không thể kích hoạt capsule.');
         }
       } catch (error) {
-        setStatus(`❌ Lỗi kết nối: ${error.message}`, 'error');
+        setBanner(error.message, 'error');
       } finally {
-        btn.disabled = false;
-        btnText.innerHTML = '<i class="fa-solid fa-rocket"></i> Tạo VPS';
+        setLoading(false);
       }
     }
 
-    async function loadVPSList() {
-      const list = document.getElementById('vpsList');
-      list.innerHTML = '<div class="placeholder"><div class="spinner" style="margin:0 auto 12px"></div>Đang lấy dữ liệu...</div>';
+    function formatRelativeTime(iso) {
+      if (!iso) return 'Chưa rõ thời gian';
+      const now = new Date();
+      const past = new Date(iso);
+      const diff = Math.max(0, now - past);
+      const minutes = Math.floor(diff / 60000);
+      if (minutes < 1) return 'Vừa xong';
+      if (minutes < 60) return `${minutes} phút trước`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours} giờ trước`;
+      const days = Math.floor(hours / 24);
+      return `${days} ngày trước`;
+    }
 
+    function buildCapsuleCard(entry) {
+      const { repo, remote_link: link, status = 'creating', token_hint: tokenHint, updated_at: updatedAt, requested_at: requestedAt } = entry;
+      const pillClass = statusStyles[status] || 'status-creating';
+      const statusLabel = status === 'ready' ? 'Ready' : status === 'error' ? 'Error' : 'Pending';
+      const infoLines = [
+        tokenHint ? `Key: ${tokenHint}` : null,
+        requestedAt ? `Bắt đầu: ${new Date(requestedAt).toLocaleString('vi-VN')}` : null,
+        updatedAt ? `Cập nhật: ${formatRelativeTime(updatedAt)}` : null,
+      ].filter(Boolean).join(' • ');
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'capsule-card';
+      wrapper.innerHTML = `
+        <div class="capsule-top">
+          <div class="capsule-meta">
+            <strong>${repo}</strong>
+            <small class="capsule-link">${infoLines || 'Đang đợi phản hồi...'}</small>
+          </div>
+          <span class="status-pill ${pillClass}">${statusLabel}</span>
+        </div>
+        <div class="capsule-link">${link ? link : 'Link sẽ xuất hiện tự động khi capsule sẵn sàng.'}</div>
+        <div class="capsule-actions">
+          <button class="mini-btn" ${link ? '' : 'disabled'} data-action="copy"><i class="fas fa-copy"></i> Copy link</button>
+          <button class="mini-btn" ${link ? '' : 'disabled'} data-action="open"><i class="fas fa-arrow-up-right-from-square"></i> Mở</button>
+          <button class="mini-btn" data-action="delete"><i class="fas fa-xmark"></i> Xóa</button>
+        </div>
+      `;
+
+      wrapper.querySelector('[data-action="copy"]').addEventListener('click', () => {
+        if (!link) return;
+        navigator.clipboard.writeText(link).then(() => {
+          setBanner('Đã sao chép link capsule.', 'success');
+        }).catch(() => setBanner('Không thể sao chép link.', 'error'));
+      });
+
+      wrapper.querySelector('[data-action="open"]').addEventListener('click', () => {
+        if (!link) return;
+        window.open(link, '_blank');
+      });
+
+      wrapper.querySelector('[data-action="delete"]').addEventListener('click', () => deleteCapsule(repo));
+      return wrapper;
+    }
+
+    function renderCapsules(users) {
+      capsuleList.innerHTML = '';
+      if (!users || users.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = '<i class="fas fa-moon"></i><p>Chưa có capsule nào. Kích hoạt một phiên mới để bắt đầu.</p>';
+        capsuleList.appendChild(empty);
+        return;
+      }
+
+      users.forEach((entry) => {
+        capsuleList.appendChild(buildCapsuleCard(entry));
+      });
+    }
+
+    async function loadCapsules() {
+      capsuleList.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Đang tải nhật ký...</p></div>';
       try {
         const response = await fetch(`${API_BASE}/api/vpsuser`);
         const data = await response.json();
-
-        if (data.status === 'success' && data.users.length > 0) {
-          list.innerHTML = data.users
-            .map((user) => {
-              const { label, className } = formatStatus(user.status);
-              const tokenHint = user.token_hint || 'PAT ẩn';
-              const repoLabel = user.repo || 'vps-project';
-              const updated = formatUpdatedAt(user.updated_at);
-              const link = user.remote_link || '';
-              const linkSection = link
-                ? `<div class="vps-link"><a href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(link)}</a></div>`
-                : '<div class="vps-link pending-text">Workflow đang chạy, link sẽ hiển thị ngay khi Cloudflare trả về.</div>';
-              const encodedLink = encodeURIComponent(link);
-              const buttons = link
-                ? `
-                  <button class="btn-ghost secondary" data-link="${encodedLink}" onclick="copyLinkFromButton(this)">
-                    <i class="fa-solid fa-copy"></i> Copy
-                  </button>
-                  <button class="btn-ghost" data-link="${encodedLink}" onclick="openLinkFromButton(this)">
-                    <i class="fa-solid fa-up-right-from-square"></i> Mở
-                  </button>
-                `
-                : `
-                  <button class="btn-ghost secondary" disabled>
-                    <i class="fa-solid fa-hourglass-half"></i> Chờ link
-                  </button>
-                  <button class="btn-ghost" disabled>
-                    <i class="fa-solid fa-ban"></i> Mở
-                  </button>
-                `;
-
-              return `
-                <div class="vps-card">
-                  <div class="vps-meta">
-                    <div class="vps-heading">
-                      <strong>${escapeHtml(repoLabel)}</strong>
-                      <span class="status-pill ${className}">${label}</span>
-                    </div>
-                    <div class="vps-token">🔑 ${escapeHtml(tokenHint)}</div>
-                    ${linkSection}
-                    <div class="vps-updated">Cập nhật: ${escapeHtml(updated)}</div>
-                  </div>
-                  <div class="vps-actions">
-                    ${buttons}
-                  </div>
-                </div>
-              `;
-            })
-            .join('');
+        if (response.ok && data.status === 'success') {
+          renderCapsules(data.users || []);
         } else {
-          list.innerHTML = '<div class="placeholder">Chưa có VPS nào hoạt động.</div>';
+          throw new Error(data.error || 'Không thể tải nhật ký.');
         }
       } catch (error) {
-        list.innerHTML = '<div class="placeholder" style="color:#fecdd3; border-color: rgba(251,113,133,0.4);">❌ Không thể tải dữ liệu.</div>';
+        capsuleList.innerHTML = `<div class="empty-state" style="color: var(--error)">${error.message}</div>`;
       }
     }
 
-    window.addEventListener('load', loadVPSList);
+    async function deleteCapsule(repo) {
+      if (!repo) return;
+      try {
+        const response = await fetch(`${API_BASE}/api/vpsuser`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ repo })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setBanner('Đã xóa một capsule khỏi nhật ký.', 'success');
+          loadCapsules();
+        } else {
+          throw new Error(data.error || 'Không thể xóa.');
+        }
+      } catch (error) {
+        setBanner(error.message, 'error');
+      }
+    }
+
+    async function clearHistory() {
+      try {
+        const response = await fetch(`${API_BASE}/api/vpsuser`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setBanner('Nhật ký đã được làm trống.', 'success');
+          loadCapsules();
+        } else {
+          throw new Error(data.error || 'Không thể xóa lịch sử.');
+        }
+      } catch (error) {
+        setBanner(error.message, 'error');
+      }
+    }
+
+    createForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      createCapsule();
+    });
+
+    document.getElementById('refreshList').addEventListener('click', loadCapsules);
+    document.getElementById('clearHistory').addEventListener('click', clearHistory);
+    window.addEventListener('load', loadCapsules);
   </script>
 </body>
 </html>
