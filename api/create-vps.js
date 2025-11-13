@@ -208,24 +208,40 @@ jobs:
               $noVncPath
             )
             Start-Process -FilePath 'python' -ArgumentList $websockifyArgs -WindowStyle Hidden
-            Set-Content -Path 'cloudflared.log' -Value '' -Encoding UTF8
+            $cloudflaredLog = 'cloudflared.log'
+            $cloudflaredErrLog = 'cloudflared-error.log'
+            Set-Content -Path $cloudflaredLog -Value '' -Encoding UTF8
+            Set-Content -Path $cloudflaredErrLog -Value '' -Encoding UTF8
             $cloudflaredExe = Join-Path (Get-Location) 'cloudflared.exe'
-            [string[]]$cloudflaredArgs = @('tunnel', '--url', 'http://localhost:6080', '--no-autoupdate')
-            Start-Process -FilePath $cloudflaredExe -ArgumentList $cloudflaredArgs -RedirectStandardOutput 'cloudflared.log' -RedirectStandardError 'cloudflared-error.log' -WindowStyle Hidden
+            [string[]]$cloudflaredArgs = @(
+              'tunnel',
+              '--url','http://localhost:6080',
+              '--no-autoupdate',
+              '--loglevel','info'
+            )
+            Start-Process -FilePath $cloudflaredExe -ArgumentList $cloudflaredArgs -RedirectStandardOutput $cloudflaredLog -RedirectStandardError $cloudflaredErrLog -WindowStyle Hidden
 
             $cloudflaredUrl = ''
             for ($attempt = 1; $attempt -le 200; $attempt++) {
               Start-Sleep -Seconds 3
-              if (Test-Path 'cloudflared.log') {
-                $logContent = Get-Content 'cloudflared.log' -Raw -ErrorAction SilentlyContinue
-                if ($logContent -match 'https://[a-zA-Z0-9-]+\.trycloudflare\.com') {
-                  $cloudflaredUrl = $matches[0]
-                  break
+              foreach ($logFile in @($cloudflaredLog, $cloudflaredErrLog)) {
+                if (Test-Path $logFile) {
+                  $logContent = Get-Content $logFile -Raw -ErrorAction SilentlyContinue
+                  if ($logContent -match 'https://[a-zA-Z0-9-]+\.trycloudflare\.com') {
+                    $cloudflaredUrl = $matches[0]
+                    break
+                  }
                 }
               }
+              if ($cloudflaredUrl) { break }
             }
 
             if (-not $cloudflaredUrl) {
+              Write-Host '⚠️ Không tìm thấy URL trong cloudflared.log hoặc cloudflared-error.log'
+              if (Test-Path $cloudflaredErrLog) {
+                Write-Host '📄 cloudflared-error.log nội dung:'
+                Write-Host (Get-Content $cloudflaredErrLog -Raw -ErrorAction SilentlyContinue)
+              }
               throw 'Không thể lấy đường dẫn Cloudflared'
             }
 
