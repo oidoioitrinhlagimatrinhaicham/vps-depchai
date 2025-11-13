@@ -20,8 +20,7 @@ export default async (req, res) => {
     let formattedUsers = [];
 
     for (const [token, link] of Object.entries(users)) {
-        const fixedLink = link.replace(/https?:\/\/[^\/]+/, 'https://vps-depchai-vercel.app');
-        formattedUsers.push({ token, link: fixedLink });
+        formattedUsers.push({ token, link });
     }
 
     res.status(200).json({ status: 'success', users: formattedUsers });
