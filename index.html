@@ -343,13 +343,13 @@
     }
 
     .vps-card {
-      padding: 16px 18px;
+      padding: 18px 20px;
       border-radius: 18px;
       border: 1px solid rgba(255, 255, 255, 0.12);
       background: rgba(255, 255, 255, 0.03);
       display: flex;
       justify-content: space-between;
-      gap: 12px;
+      gap: 16px;
       align-items: center;
     }
 
@@ -361,12 +361,34 @@
       font-weight: 600;
       color: #ffe8b5;
       font-size: 0.95rem;
+      margin-bottom: 4px;
     }
 
     .vps-link {
       color: var(--text-muted);
       font-size: 0.9rem;
       word-break: break-word;
+      margin-top: 6px;
+    }
+
+    .vps-link a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .vps-link a:hover {
+      text-decoration: underline;
+    }
+
+    .pending-text {
+      color: rgba(226, 232, 240, 0.85);
+      font-style: italic;
+    }
+
+    .vps-updated {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
     }
 
     .vps-actions {
@@ -385,10 +407,17 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      justify-content: center;
     }
 
     .btn-ghost.secondary {
       color: #f8d477;
+    }
+
+    .btn-ghost:disabled,
+    .btn-ghost[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .placeholder {
@@ -526,8 +555,8 @@
       <div class="hero-pill"><i class="fa-solid fa-sparkles"></i> VPS GitHub Edition</div>
       <h2>Khởi tạo Windows VPS trên GitHub Actions chỉ với một token.</h2>
       <p>
-        Trình điều khiển này mô phỏng phong cách của <strong>vps-github.vercel.app</strong> với nền gradient, card glassmorphism và
-        các chỉ số trực quan. Tất cả API gốc được giữ nguyên để bạn có thể dán token và tạo VPS tức thì.
+        Dashboard này mô phỏng phong cách của <strong>vps-github.vercel.app</strong> nhưng đã khôi phục toàn bộ workflow gốc:
+        mỗi lần tạo, repo private sẽ nhận secret, trigger Windows runner và tự gửi lại Cloudflare link về API cho bạn.
       </p>
       <div class="hero-metrics">
         <div class="metric">
@@ -626,6 +655,45 @@
       status.className = `status-box ${type}`.trim();
     }
 
+    function escapeHtml(str = '') {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatStatus(status = '') {
+      const normalized = (status || '').toLowerCase();
+      if (normalized === 'ready') return { label: 'Đang hoạt động', className: 'status-ready' };
+      if (normalized === 'error') return { label: 'Workflow lỗi', className: 'status-error' };
+      if (normalized === 'provisioning') return { label: 'Đang cấu hình', className: 'status-pending' };
+      return { label: 'Đang khởi tạo', className: 'status-pending' };
+    }
+
+    function formatUpdatedAt(value) {
+      if (!value) return 'Chưa cập nhật';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString('vi-VN', { hour12: false });
+    }
+
+    function copyLinkFromButton(button) {
+      const decoded = decodeURIComponent(button.dataset.link || '');
+      navigator.clipboard.writeText(decoded);
+      const original = button.innerHTML;
+      button.innerHTML = '<i class="fa-solid fa-check"></i> Đã copy';
+      setTimeout(() => {
+        button.innerHTML = original;
+      }, 1800);
+    }
+
+    function openLinkFromButton(button) {
+      const decoded = decodeURIComponent(button.dataset.link || '');
+      window.open(decoded, '_blank');
+    }
+
     async function createVPS() {
       const token = document.getElementById('githubToken').value.trim();
       const btn = document.getElementById('createBtn');
@@ -672,24 +740,51 @@
 
         if (data.status === 'success' && data.users.length > 0) {
           list.innerHTML = data.users
-            .map(
-              (user) => `
-              <div class="vps-card">
-                <div class="vps-meta">
-                  <div class="vps-token">🔑 ${user.token}</div>
-                  <div class="vps-link">${user.link}</div>
-                </div>
-                <div class="vps-actions">
-                  <button class="btn-ghost secondary" onclick="navigator.clipboard.writeText('${user.link}')">
+            .map((user) => {
+              const { label, className } = formatStatus(user.status);
+              const tokenHint = user.token_hint || 'PAT ẩn';
+              const repoLabel = user.repo || 'vps-project';
+              const updated = formatUpdatedAt(user.updated_at);
+              const link = user.remote_link || '';
+              const linkSection = link
+                ? `<div class="vps-link"><a href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(link)}</a></div>`
+                : '<div class="vps-link pending-text">Workflow đang chạy, link sẽ hiển thị ngay khi Cloudflare trả về.</div>';
+              const encodedLink = encodeURIComponent(link);
+              const buttons = link
+                ? `
+                  <button class="btn-ghost secondary" data-link="${encodedLink}" onclick="copyLinkFromButton(this)">
                     <i class="fa-solid fa-copy"></i> Copy
                   </button>
-                  <button class="btn-ghost" onclick="window.open('${user.link}', '_blank')">
+                  <button class="btn-ghost" data-link="${encodedLink}" onclick="openLinkFromButton(this)">
                     <i class="fa-solid fa-up-right-from-square"></i> Mở
                   </button>
+                `
+                : `
+                  <button class="btn-ghost secondary" disabled>
+                    <i class="fa-solid fa-hourglass-half"></i> Chờ link
+                  </button>
+                  <button class="btn-ghost" disabled>
+                    <i class="fa-solid fa-ban"></i> Mở
+                  </button>
+                `;
+
+              return `
+                <div class="vps-card">
+                  <div class="vps-meta">
+                    <div class="vps-heading">
+                      <strong>${escapeHtml(repoLabel)}</strong>
+                      <span class="status-pill ${className}">${label}</span>
+                    </div>
+                    <div class="vps-token">🔑 ${escapeHtml(tokenHint)}</div>
+                    ${linkSection}
+                    <div class="vps-updated">Cập nhật: ${escapeHtml(updated)}</div>
+                  </div>
+                  <div class="vps-actions">
+                    ${buttons}
+                  </div>
                 </div>
-              </div>
-            `
-            )
+              `;
+            })
             .join('');
         } else {
           list.innerHTML = '<div class="placeholder">Chưa có VPS nào hoạt động.</div>';
