@@ -216,10 +216,31 @@ jobs:
             Start-Process -FilePath $tightVncExe -ArgumentList '-run' -WindowStyle Hidden
             Start-Sleep -Seconds 10
 
-            Write-ProgressLog '🌐 Khởi chạy websockify & Cloudflared'
-            $websockifyArgsString = "-m websockify 6080 127.0.0.1:5900 --web '$noVncPath'"
+            Write-ProgressLog '🌐 Khởi chạy websockify'
+            $websockifyArgsString = ('-m websockify 6080 127.0.0.1:5900 --web "{0}"' -f $noVncPath)
             Start-Process -FilePath 'python' -ArgumentList $websockifyArgsString -WindowStyle Hidden
-            Start-Sleep -Seconds 5
+
+            $websockifyReady = $false
+            for ($attempt = 1; $attempt -le 40; $attempt++) {
+              Start-Sleep -Seconds 3
+              try {
+                $probe = Test-NetConnection -ComputerName '127.0.0.1' -Port 6080 -WarningAction SilentlyContinue
+                if ($probe.TcpTestSucceeded) {
+                  $websockifyReady = $true
+                  break
+                }
+              } catch {
+                Start-Sleep -Seconds 1
+              }
+            }
+
+            if (-not $websockifyReady) {
+              throw 'Websockify không phản hồi trên cổng 6080'
+            }
+
+            Write-ProgressLog '✅ Websockify sẵn sàng'
+
+            Write-ProgressLog '☁️ Kích hoạt Cloudflared'
             $cloudflaredLog = 'cloudflared.log'
             $cloudflaredErrLog = 'cloudflared-error.log'
             Set-Content -Path $cloudflaredLog -Value '' -Encoding UTF8
