@@ -1,589 +1,705 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VPS Aurora Panel</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            color-scheme: dark;
-            --primary: #8f7afa;
-            --primary-soft: rgba(143, 122, 250, 0.25);
-            --secondary: #f472b6;
-            --bg: #04030c;
-            --card: rgba(10, 11, 26, 0.75);
-            --border: rgba(255, 255, 255, 0.06);
-            --text-muted: #b6b8d6;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VPS GitHub Control Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --brand: #ffb347;
+      --brand-accent: #ffcc33;
+      --bg: #010409;
+      --bg-soft: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-muted: rgba(255, 255, 255, 0.68);
+      --success: #34d399;
+      --danger: #fb7185;
+      font-size: 16px;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            min-height: 100vh;
-            font-family: 'Space Grotesk', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: radial-gradient(circle at top, #0b0d2a 0%, #050312 35%, #04030c 100%);
-            color: #f8f8ff;
-            overflow-x: hidden;
-            padding: 32px 18px 60px;
-        }
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at 10% 20%, rgba(255, 179, 71, 0.18), transparent 40%),
+        radial-gradient(circle at 80% 0%, rgba(255, 204, 51, 0.2), transparent 35%),
+        #010409;
+      color: #fff;
+      padding: 32px 18px 64px;
+      line-height: 1.5;
+    }
 
-        .stars::before,
-        .stars::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px);
-            background-size: 120px 120px;
-            opacity: 0.25;
-            z-index: -2;
-        }
+    .grid-bg::before,
+    .grid-bg::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 120px 120px;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: -2;
+    }
 
-        .stars::after {
-            background-size: 80px 80px;
-            opacity: 0.15;
-            animation: drift 30s linear infinite;
-        }
+    .grid-bg::after {
+      background-size: 70px 70px;
+      opacity: 0.08;
+      animation: drift 48s linear infinite;
+    }
 
-        @keyframes drift {
-            from { transform: translate3d(0,0,0); }
-            to { transform: translate3d(-80px,-120px,0); }
-        }
+    @keyframes drift {
+      from {
+        transform: translate3d(0, 0, 0);
+      }
+      to {
+        transform: translate3d(-70px, -120px, 0);
+      }
+    }
 
-        .app {
-            max-width: 1100px;
-            margin: 0 auto;
-            position: relative;
-        }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-        .hero {
-            padding: 32px;
-            border-radius: 28px;
-            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(248,113,113,0.15));
-            border: 1px solid var(--border);
-            box-shadow: 0 25px 65px rgba(0,0,0,0.45);
-            margin-bottom: 28px;
-            position: relative;
-            overflow: hidden;
-        }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 18px;
+    }
 
-        .hero::after {
-            content: '';
-            position: absolute;
-            width: 260px;
-            height: 260px;
-            background: radial-gradient(circle, rgba(255,255,255,0.35), transparent 70%);
-            right: -60px;
-            top: -80px;
-            filter: blur(10px);
-        }
+    .logo {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-        .hero h1 {
-            font-size: clamp(2.3rem, 5vw, 3.4rem);
-            margin-bottom: 12px;
-            letter-spacing: -1px;
-        }
+    .logo span {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
 
-        .hero p {
-            color: var(--text-muted);
-            max-width: 520px;
-            line-height: 1.5;
-            font-size: 1.05rem;
-        }
+    .logo h1 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
 
-        .hero-badges {
-            margin-top: 22px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-        .badge {
-            padding: 8px 14px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.04);
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
+    nav a,
+    .primary-link {
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #fff;
+      font-weight: 500;
+      font-size: 0.92rem;
+    }
 
-        .metrics {
-            margin-top: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 18px;
-        }
+    .primary-link {
+      border: none;
+      background: linear-gradient(135deg, #ffb347, #ffcc33);
+      color: #1a1a1a;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .metric-card {
-            padding: 18px 20px;
-            border-radius: 18px;
-            background: var(--card);
-            border: 1px solid var(--border);
-        }
+    .hero {
+      margin-top: 30px;
+      padding: 32px;
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      background: linear-gradient(120deg, rgba(255, 179, 71, 0.18), rgba(255, 204, 51, 0.12)),
+        rgba(1, 4, 9, 0.75);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
 
-        .metric-value {
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -80px;
+      bottom: -80px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 70%);
+      opacity: 0.4;
+      filter: blur(16px);
+    }
 
-        .metric-label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 6px;
-        }
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-        }
+    .hero h2 {
+      font-size: clamp(2.1rem, 4.8vw, 3.3rem);
+      margin: 20px 0 14px;
+      letter-spacing: -0.03em;
+    }
 
-        .panel {
-            background: var(--card);
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            padding: 28px;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.35);
-        }
+    .hero p {
+      color: var(--text-muted);
+      max-width: 640px;
+      font-size: 1.05rem;
+    }
 
-        .panel h2 {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    .hero-metrics {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+    }
 
-        label {
-            font-size: 0.95rem;
-            display: block;
-            margin-bottom: 10px;
-            color: var(--text-muted);
-        }
+    .metric {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-        .input-shell {
-            position: relative;
-        }
+    .metric h3 {
+      font-size: 1.8rem;
+    }
 
-        .input-shell i {
-            position: absolute;
-            top: 50%;
-            left: 16px;
-            transform: translateY(-50%);
-            color: var(--primary);
-        }
+    .metric p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
 
-        input {
-            width: 100%;
-            padding: 15px 16px 15px 48px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.45);
-            color: #fff;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: border 0.2s, box-shadow 0.2s;
-        }
+    .main-grid {
+      margin-top: 36px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 24px;
+    }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(143,122,250,0.15);
-        }
+    .panel {
+      background: rgba(1, 4, 9, 0.8);
+      border-radius: 26px;
+      border: 1px solid var(--border);
+      padding: 28px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+    }
 
-        button {
-            border: none;
-            border-radius: 16px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            padding: 15px 18px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+    .panel h3 {
+      font-size: 1.35rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #7c5dff, #f472b6);
-            color: #fff;
-            width: 100%;
-            margin-top: 18px;
-            box-shadow: 0 15px 30px rgba(124,93,255,0.3);
-        }
+    .panel > p {
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
 
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+    label {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 10px;
+    }
 
-        .btn-primary:not(:disabled):hover {
-            transform: translateY(-3px);
-        }
+    .input-wrapper {
+      position: relative;
+    }
 
-        .refresh-btn {
-            background: rgba(255,255,255,0.08);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.12);
-            padding: 12px 16px;
-            border-radius: 999px;
-            font-size: 0.9rem;
-        }
+    .input-wrapper i {
+      position: absolute;
+      top: 50%;
+      left: 16px;
+      transform: translateY(-50%);
+      color: var(--brand);
+    }
 
-        .panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
+    input {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
 
-        .status {
-            margin-top: 20px;
-            padding: 14px 18px;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            display: none;
-            border: 1px solid transparent;
-        }
+    input:focus {
+      outline: none;
+      border-color: rgba(255, 204, 51, 0.7);
+      box-shadow: 0 0 0 3px rgba(255, 204, 51, 0.2);
+    }
 
-        .status.success {
-            display: block;
-            border-color: rgba(34,197,94,0.4);
-            background: rgba(34,197,94,0.15);
-            color: #bbf7d0;
-        }
+    button {
+      cursor: pointer;
+    }
 
-        .status.error {
-            display: block;
-            border-color: rgba(248,113,113,0.4);
-            background: rgba(248,113,113,0.1);
-            color: #fecaca;
-        }
+    .btn-submit {
+      margin-top: 16px;
+      width: 100%;
+      padding: 16px;
+      border-radius: 18px;
+      border: none;
+      background: linear-gradient(135deg, #ffb347, #ffcc33);
+      color: #1a1a1a;
+      font-weight: 600;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
 
-        .vps-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-        .vps-item {
-            padding: 18px 20px;
-            border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(5,5,20,0.8);
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-        }
+    .btn-submit:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 35px rgba(255, 179, 71, 0.35);
+    }
 
-        .vps-token {
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 0.95rem;
-        }
+    .status-box {
+      margin-top: 18px;
+      border-radius: 18px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+      min-height: 52px;
+      font-size: 0.95rem;
+    }
 
-        .vps-link {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-            max-width: 360px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+    .status-box.success {
+      border-color: rgba(52, 211, 153, 0.5);
+      color: var(--success);
+    }
 
-        .vps-actions {
-            margin-left: auto;
-        }
+    .status-box.error {
+      border-color: rgba(251, 113, 133, 0.5);
+      color: #fecdd3;
+    }
 
-        .btn-open {
-            padding: 10px 18px;
-            border-radius: 12px;
-            border: none;
-            background: var(--primary);
-            color: #fff;
-            font-size: 0.9rem;
-        }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
 
-        .btn-open:hover {
-            transform: scale(1.02);
-        }
+    .refresh-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .placeholder {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 30px 10px;
-        }
+    .vps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
 
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border-radius: 999px;
-            border: 2px solid rgba(255,255,255,0.15);
-            border-top-color: #fff;
-            animation: spin 0.8s linear infinite;
-        }
+    .vps-card {
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+    .vps-meta {
+      flex: 1;
+    }
 
-        .features {
-            margin-top: 40px;
-            padding: 30px;
-            border-radius: 26px;
-            background: var(--card);
-            border: 1px solid var(--border);
-        }
+    .vps-token {
+      font-weight: 600;
+      color: #ffe8b5;
+      font-size: 0.95rem;
+    }
 
-        .features h2 {
-            font-size: 1.4rem;
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    .vps-link {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
 
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 18px;
-        }
+    .vps-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-        .feature-card {
-            padding: 20px;
-            border-radius: 18px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(6,7,20,0.7);
-            text-align: left;
-        }
+    .btn-ghost {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-        .feature-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: grid;
-            place-items: center;
-            margin-bottom: 14px;
-            background: rgba(143,122,250,0.15);
-            color: var(--primary);
-        }
+    .btn-ghost.secondary {
+      color: #f8d477;
+    }
 
-        .feature-card h3 {
-            font-size: 1.05rem;
-            margin-bottom: 6px;
-        }
+    .placeholder {
+      border-radius: 18px;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      padding: 28px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
 
-        .feature-card p {
-            color: var(--text-muted);
-            font-size: 0.92rem;
-            line-height: 1.5;
-        }
+    .info-sections {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
 
-        footer {
-            text-align: center;
-            margin-top: 36px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
+    .info-card {
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+    }
 
-        @media (max-width: 600px) {
-            .hero {
-                padding: 24px;
-            }
-            .panel {
-                padding: 22px;
-            }
-            .panel-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .vps-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .vps-actions {
-                width: 100%;
-            }
-            .btn-open {
-                width: 100%;
-            }
-        }
-    </style>
+    .info-card h4 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .info-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .steps {
+      margin-top: 46px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .step-card {
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.03);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-card span {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+    }
+
+    .step-card h5 {
+      margin-top: 8px;
+      font-size: 1.15rem;
+    }
+
+    .step-card p {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 0.93rem;
+    }
+
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 24px 14px 50px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .hero,
+      .panel {
+        padding: 24px;
+      }
+
+      .vps-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .vps-actions {
+        flex-direction: row;
+      }
+    }
+  </style>
 </head>
-<body>
-    <div class="stars"></div>
-    <div class="app">
-        <header class="hero">
-            <h1>VPS Aurora Panel</h1>
-            <p>
-                Giao diện mới mang phong cách tương lai giúp bạn tạo và quản lý VPS Windows
-                dựa trên DuckNoVis chỉ bằng vài cú nhấp. Hỗ trợ GitHub Actions, bảo mật bằng mật khẩu tùy chỉnh.
-            </p>
-            <div class="hero-badges">
-                <span class="badge"><i class="fas fa-shield"></i> Password mặc định: <strong>hieudz</strong></span>
-                <span class="badge"><i class="fas fa-bolt"></i> Deploy ~5 phút</span>
-                <span class="badge"><i class="fas fa-clock"></i> Tự tắt sau 5.5h</span>
-            </div>
-            <div class="metrics">
-                <div class="metric-card">
-                    <div class="metric-value">GitHub</div>
-                    <div class="metric-label">Workflow Actions</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">DuckNoVis</div>
-                    <div class="metric-label">Remote Desktop Engine</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">NoVNC</div>
-                    <div class="metric-label">Truy cập trình duyệt</div>
-                </div>
-            </div>
-        </header>
+<body class="grid-bg">
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span>VPS HUB</span>
+        <h1>Bảng điều khiển VPS GitHub</h1>
+      </div>
+      <nav>
+        <a href="https://vps-github.vercel.app" target="_blank" rel="noopener">Giao diện gốc</a>
+        <button class="primary-link" onclick="loadVPSList()">
+          <i class="fas fa-arrows-rotate"></i>
+          Làm mới danh sách
+        </button>
+      </nav>
+    </header>
 
-        <main class="content-grid">
-            <section class="panel">
-                <h2><i class="fas fa-rocket"></i> Khởi tạo VPS</h2>
-                <label for="githubToken">Nhập GitHub Personal Access Token của bạn</label>
-                <div class="input-shell">
-                    <i class="fab fa-github"></i>
-                    <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-                </div>
-                <button id="createBtn" class="btn-primary" onclick="createVPS()">
-                    <i class="fas fa-plus-circle"></i>
-                    <span id="btnText">Tạo VPS mới</span>
-                </button>
-                <div id="status" class="status"></div>
-            </section>
+    <section class="hero">
+      <div class="hero-pill"><i class="fa-solid fa-sparkles"></i> VPS GitHub Edition</div>
+      <h2>Khởi tạo Windows VPS trên GitHub Actions chỉ với một token.</h2>
+      <p>
+        Trình điều khiển này mô phỏng phong cách của <strong>vps-github.vercel.app</strong> với nền gradient, card glassmorphism và
+        các chỉ số trực quan. Tất cả API gốc được giữ nguyên để bạn có thể dán token và tạo VPS tức thì.
+      </p>
+      <div class="hero-metrics">
+        <div class="metric">
+          <p>Thời gian thiết lập</p>
+          <h3>5-10 phút</h3>
+        </div>
+        <div class="metric">
+          <p>Mật khẩu mặc định</p>
+          <h3>hieudz</h3>
+        </div>
+        <div class="metric">
+          <p>Hạ tầng</p>
+          <h3>GitHub + Vercel</h3>
+        </div>
+        <div class="metric">
+          <p>Giới hạn</p>
+          <h3>~5.5 giờ</h3>
+        </div>
+      </div>
+    </section>
 
-            <section class="panel">
-                <div class="panel-header">
-                    <h2><i class="fas fa-layer-group"></i> Danh sách VPS</h2>
-                    <button class="refresh-btn" onclick="loadVPSList()">
-                        <i class="fas fa-rotate"></i> Làm mới
-                    </button>
-                </div>
-                <div id="vpsList" class="vps-list"></div>
-            </section>
-        </main>
+    <div class="main-grid">
+      <section class="panel">
+        <h3><i class="fa-solid fa-terminal"></i> Khởi tạo VPS mới</h3>
+        <p>Nhập GitHub Personal Access Token (PAT) đã bật <code>repo</code> &amp; <code>workflow</code> rồi nhấn khởi tạo.</p>
+        <label for="githubToken">GitHub Token</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-key"></i>
+          <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxx" autocomplete="off" />
+        </div>
+        <button class="btn-submit" id="createBtn" onclick="createVPS()">
+          <span id="btnText"><i class="fa-solid fa-rocket"></i> Tạo VPS</span>
+        </button>
+        <div id="status" class="status-box"></div>
+      </section>
 
-        <section class="features">
-            <h2><i class="fas fa-sparkles"></i> Điểm nổi bật</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-desktop"></i></div>
-                    <h3>Windows Server</h3>
-                    <p>Máy chủ Windows đầy đủ tính năng, cài sẵn Remote Desktop thông qua trình duyệt.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-sync"></i></div>
-                    <h3>Tự động khởi chạy</h3>
-                    <p>Workflow GitHub tự tái tạo phiên VPS mới sau mỗi 5.5 giờ sử dụng.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-lock"></i></div>
-                    <h3>Bảo mật</h3>
-                    <p>Đặt mật khẩu truy cập VNC theo nhu cầu. Mặc định là <strong>hieudz</strong>.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                    <h3>Triển khai nhanh</h3>
-                    <p>Chỉ cần token GitHub, hệ thống tự tạo repo, workflow và trả về link truy cập.</p>
-                </div>
-            </div>
-        </section>
-
-        <footer>© 2025 Hiếu Dz • hieuvn.xyz</footer>
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h3><i class="fa-solid fa-layer-group"></i> Danh sách VPS đang chạy</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Danh sách này được đồng bộ từ API /api/vpsuser.</p>
+          </div>
+          <button class="refresh-btn" onclick="loadVPSList()">
+            <i class="fa-solid fa-rotate"></i>
+            Làm mới
+          </button>
+        </div>
+        <div id="vpsList" class="vps-list">
+          <div class="placeholder">Danh sách đang tải...</div>
+        </div>
+      </section>
     </div>
 
-    <script>
-        const API_BASE = window.location.origin;
+    <div class="info-sections">
+      <div class="info-card">
+        <h4><i class="fa-solid fa-lock"></i> Repo private</h4>
+        <p>Tất cả repo tạo ra đều private và tự nhận secret GH_TOKEN để workflow xử lý.</p>
+      </div>
+      <div class="info-card">
+        <h4><i class="fa-solid fa-stopwatch"></i> Auto restart</h4>
+        <p>Workflow Windows tự khởi tạo lại sau 5.5 giờ đảm bảo phiên hoạt động liên tục.</p>
+      </div>
+      <div class="info-card">
+        <h4><i class="fa-solid fa-cloud"></i> Cloud access</h4>
+        <p>noVNC + Cloudflare Tunnel giúp bạn truy cập trình duyệt từ mọi thiết bị.</p>
+      </div>
+    </div>
 
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
+    <div class="steps">
+      <div class="step-card">
+        <span>Bước 01</span>
+        <h5>Chuẩn bị GitHub PAT</h5>
+        <p>Tạo token classic với quyền repo, workflow (tuỳ chọn write:packages) và copy vào clipboard.</p>
+      </div>
+      <div class="step-card">
+        <span>Bước 02</span>
+        <h5>Dán token và tạo VPS</h5>
+        <p>Nhấn “Tạo VPS” để hệ thống clone template, đặt workflow và trigger build.</p>
+      </div>
+      <div class="step-card">
+        <span>Bước 03</span>
+        <h5>Lấy link truy cập</h5>
+        <p>Trong 5-10 phút, remote-link.txt hoặc danh sách bên cạnh sẽ hiện URL noVNC.</p>
+      </div>
+    </div>
+
+    <footer>© 2025 Hiếu Dz • Mô phỏng giao diện vps-github.vercel.app</footer>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    function setStatus(message = '', type = '') {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = `status-box ${type}`.trim();
+    }
+
+    async function createVPS() {
+      const token = document.getElementById('githubToken').value.trim();
+      const btn = document.getElementById('createBtn');
+      const btnText = document.getElementById('btnText');
+
+      if (!token) {
+        setStatus('⚠️ Vui lòng nhập GitHub token hợp lệ.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span>';
+
+      try {
+        const response = await fetch(`${API_BASE}/api/create-vps`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ github_token: token })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setStatus(`✅ ${data.message}. Repo: ${data.repository}. Vui lòng chờ workflow hoàn tất.`, 'success');
+          setTimeout(loadVPSList, 6000);
+        } else {
+          setStatus(`❌ ${data.error || 'Không thể tạo VPS. Thử lại sau.'}`, 'error');
         }
+      } catch (error) {
+        setStatus(`❌ Lỗi kết nối: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btnText.innerHTML = '<i class="fa-solid fa-rocket"></i> Tạo VPS';
+      }
+    }
 
-        async function createVPS() {
-            const token = document.getElementById('githubToken').value.trim();
-            const btn = document.getElementById('createBtn');
-            const btnText = document.getElementById('btnText');
+    async function loadVPSList() {
+      const list = document.getElementById('vpsList');
+      list.innerHTML = '<div class="placeholder"><div class="spinner" style="margin:0 auto 12px"></div>Đang lấy dữ liệu...</div>';
 
-            if (!token) {
-                showStatus('⚠️ Vui lòng nhập GitHub Token', 'error');
-                return;
-            }
+      try {
+        const response = await fetch(`${API_BASE}/api/vpsuser`);
+        const data = await response.json();
 
-            btn.disabled = true;
-            btnText.innerHTML = '<div class="spinner"></div>';
-
-            try {
-                const response = await fetch(`${API_BASE}/api/create-vps`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ github_token: token })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showStatus(`✅ ${data.message} - Repo: ${data.repository}. Đợi 5-10 phút...`, 'success');
-                    setTimeout(loadVPSList, 5000);
-                } else {
-                    showStatus(`❌ ${data.error || 'Không thể tạo VPS'}`, 'error');
-                }
-            } catch (error) {
-                showStatus(`❌ Lỗi: ${error.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-                btnText.innerHTML = 'Tạo VPS mới';
-            }
+        if (data.status === 'success' && data.users.length > 0) {
+          list.innerHTML = data.users
+            .map(
+              (user) => `
+              <div class="vps-card">
+                <div class="vps-meta">
+                  <div class="vps-token">🔑 ${user.token}</div>
+                  <div class="vps-link">${user.link}</div>
+                </div>
+                <div class="vps-actions">
+                  <button class="btn-ghost secondary" onclick="navigator.clipboard.writeText('${user.link}')">
+                    <i class="fa-solid fa-copy"></i> Copy
+                  </button>
+                  <button class="btn-ghost" onclick="window.open('${user.link}', '_blank')">
+                    <i class="fa-solid fa-up-right-from-square"></i> Mở
+                  </button>
+                </div>
+              </div>
+            `
+            )
+            .join('');
+        } else {
+          list.innerHTML = '<div class="placeholder">Chưa có VPS nào hoạt động.</div>';
         }
+      } catch (error) {
+        list.innerHTML = '<div class="placeholder" style="color:#fecdd3; border-color: rgba(251,113,133,0.4);">❌ Không thể tải dữ liệu.</div>';
+      }
+    }
 
-        async function loadVPSList() {
-            const vpsList = document.getElementById('vpsList');
-            vpsList.innerHTML = '<div class="placeholder"><div class="spinner" style="margin:0 auto 12px"></div>Đang tải dữ liệu...</div>';
-
-            try {
-                const response = await fetch(`${API_BASE}/api/vpsuser`);
-                const data = await response.json();
-
-                if (data.status === 'success' && data.users.length > 0) {
-                    vpsList.innerHTML = data.users.map(user => `
-                        <div class="vps-item">
-                            <div>
-                                <div class="vps-token">🔑 ${user.token}</div>
-                                <div class="vps-link">${user.link}</div>
-                            </div>
-                            <div class="vps-actions">
-                                <button class="btn-open" onclick="window.open('${user.link}', '_blank')">
-                                    <i class="fas fa-arrow-up-right-from-square"></i>
-                                    Mở
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    vpsList.innerHTML = '<div class="placeholder">Chưa có VPS đang hoạt động.</div>';
-                }
-            } catch (error) {
-                vpsList.innerHTML = '<div class="placeholder" style="color:#fecaca;">❌ Không thể tải danh sách.</div>';
-            }
-        }
-
-        window.addEventListener('load', loadVPSList);
-    </script>
+    window.addEventListener('load', loadVPSList);
+  </script>
 </body>
 </html>
