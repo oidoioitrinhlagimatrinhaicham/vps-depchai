@@ -217,12 +217,19 @@ jobs:
             Start-Sleep -Seconds 10
 
             Write-ProgressLog '🌐 Khởi chạy websockify'
-            $websockifyArgsString = ('-m websockify 6080 127.0.0.1:5900 --web "{0}"' -f $noVncPath)
-            Start-Process -FilePath 'python' -ArgumentList $websockifyArgsString -WindowStyle Hidden
+            $websockifyLog = 'websockify.log'
+            $websockifyErrLog = 'websockify-error.log'
+            Set-Content -Path $websockifyLog -Value '' -Encoding UTF8
+            Set-Content -Path $websockifyErrLog -Value '' -Encoding UTF8
+            [string[]]$websockifyArgs = @('-m','websockify','6080','127.0.0.1:5900','--web',$noVncPath)
+            $websockifyProcess = Start-Process -FilePath 'python' -ArgumentList $websockifyArgs -RedirectStandardOutput $websockifyLog -RedirectStandardError $websockifyErrLog -WindowStyle Hidden -PassThru
 
             $websockifyReady = $false
             for ($attempt = 1; $attempt -le 40; $attempt++) {
               Start-Sleep -Seconds 3
+              if ($websockifyProcess.HasExited) {
+                break
+              }
               try {
                 $probe = Test-NetConnection -ComputerName '127.0.0.1' -Port 6080 -WarningAction SilentlyContinue
                 if ($probe.TcpTestSucceeded) {
@@ -235,6 +242,13 @@ jobs:
             }
 
             if (-not $websockifyReady) {
+              if ($websockifyProcess -and $websockifyProcess.HasExited) {
+                Write-ProgressLog "⚠️ Websockify đã dừng với mã $($websockifyProcess.ExitCode)"
+              }
+              if (Test-Path $websockifyErrLog) {
+                Write-Host '📄 websockify-error.log nội dung:'
+                Write-Host (Get-Content $websockifyErrLog -Raw -ErrorAction SilentlyContinue)
+              }
               throw 'Websockify không phản hồi trên cổng 6080'
             }
 
