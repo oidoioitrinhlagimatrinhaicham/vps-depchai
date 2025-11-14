@@ -221,8 +221,9 @@ jobs:
             $websockifyErrLog = 'websockify-error.log'
             Set-Content -Path $websockifyLog -Value '' -Encoding UTF8
             Set-Content -Path $websockifyErrLog -Value '' -Encoding UTF8
-            [string[]]$websockifyArgs = @('-m','websockify','6080','127.0.0.1:5900','--web',$noVncPath)
-            $websockifyProcess = Start-Process -FilePath 'python' -ArgumentList $websockifyArgs -RedirectStandardOutput $websockifyLog -RedirectStandardError $websockifyErrLog -WindowStyle Hidden -PassThru
+            $escapedWebPath = $noVncPath -replace '"', '""'
+            $websockifyArgsString = "-m websockify 6080 127.0.0.1:5900 --web \`"$escapedWebPath\`""
+            $websockifyProcess = Start-Process -FilePath 'python' -ArgumentList $websockifyArgsString -RedirectStandardOutput $websockifyLog -RedirectStandardError $websockifyErrLog -WindowStyle Hidden -PassThru
 
             $websockifyReady = $false
             for ($attempt = 1; $attempt -le 40; $attempt++) {
@@ -231,19 +232,31 @@ jobs:
                 break
               }
               try {
-                $probe = Test-NetConnection -ComputerName '127.0.0.1' -Port 6080 -WarningAction SilentlyContinue
-                if ($probe.TcpTestSucceeded) {
+                $httpProbe = Invoke-WebRequest -Uri 'http://127.0.0.1:6080' -UseBasicParsing -Method Head -TimeoutSec 3 -ErrorAction Stop
+                if ($httpProbe.StatusCode -ge 200) {
                   $websockifyReady = $true
                   break
                 }
               } catch {
-                Start-Sleep -Seconds 1
+                try {
+                  $probe = Test-NetConnection -ComputerName '127.0.0.1' -Port 6080 -WarningAction SilentlyContinue
+                  if ($probe.TcpTestSucceeded) {
+                    $websockifyReady = $true
+                    break
+                  }
+                } catch {
+                  Start-Sleep -Seconds 1
+                }
               }
             }
 
             if (-not $websockifyReady) {
               if ($websockifyProcess -and $websockifyProcess.HasExited) {
                 Write-ProgressLog "⚠️ Websockify đã dừng với mã $($websockifyProcess.ExitCode)"
+              }
+              if (Test-Path $websockifyLog) {
+                Write-Host '📄 websockify.log nội dung:'
+                Write-Host (Get-Content $websockifyLog -Raw -ErrorAction SilentlyContinue)
               }
               if (Test-Path $websockifyErrLog) {
                 Write-Host '📄 websockify-error.log nội dung:'
